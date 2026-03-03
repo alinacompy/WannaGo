@@ -24,20 +24,12 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
         }
         
         .header {
             padding: 12px 16px;
             background: white;
             border-bottom: 1px solid #ffe6d5;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-shrink: 0;
-        }
-        
-        .logo-container {
             display: flex;
             align-items: center;
             gap: 12px;
@@ -65,30 +57,29 @@
             color: #ff8a5c;
         }
         
-        .user-name {
-            font-size: 14px;
-            color: #ff8a5c;
-            font-weight: 500;
-            background: #fff0e6;
-            padding: 6px 12px;
-            border-radius: 20px;
-        }
-        
-        .description {
+        .description-main {
             padding: 12px 16px;
             background: #fff8f0;
             border-bottom: 1px solid #ffe6d5;
             text-align: center;
             font-size: 13px;
             color: #2d3436;
-            line-height: 1.4;
-            flex-shrink: 0;
+        }
+        
+        .description-secondary {
+            padding: 8px 16px;
+            background: white;
+            text-align: center;
+            font-size: 12px;
+            color: #ff8a5c;
+            border-bottom: 1px solid #ffe6d5;
+            font-style: italic;
         }
         
         #map {
             flex: 1;
             width: 100%;
-            z-index: 1;
+            position: relative;
         }
         
         .add-button {
@@ -108,12 +99,6 @@
             border: 2px solid white;
             cursor: pointer;
             z-index: 100;
-            transition: transform 0.2s;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        .add-button:active {
-            transform: scale(0.95);
         }
         
         .modal {
@@ -124,10 +109,9 @@
             bottom: 0;
             background: rgba(0,0,0,0.5);
             display: none;
-            align-items: flex-end;
+            align-items: center;
             justify-content: center;
             z-index: 1000;
-            padding: 0;
         }
         
         .modal.show {
@@ -136,36 +120,24 @@
         
         .modal-content {
             background: white;
-            border-radius: 24px 24px 0 0;
-            padding: 24px 20px 30px;
-            width: 100%;
-            max-width: 500px;
-            animation: slideUp 0.3s ease;
-        }
-        
-        @keyframes slideUp {
-            from { transform: translateY(100%); }
-            to { transform: translateY(0); }
+            border-radius: 24px;
+            padding: 24px;
+            width: 90%;
+            max-width: 400px;
         }
         
         .modal-title {
             font-size: 20px;
             font-weight: 600;
-            margin-bottom: 4px;
+            margin-bottom: 16px;
             color: #2d3436;
-        }
-        
-        .modal-subtitle {
-            font-size: 14px;
-            color: #b2bec3;
-            margin-bottom: 24px;
         }
         
         .modal-input {
             width: 100%;
-            padding: 16px;
+            padding: 14px;
             border: 2px solid #ffe6d5;
-            border-radius: 16px;
+            border-radius: 12px;
             font-size: 16px;
             margin-bottom: 12px;
         }
@@ -177,18 +149,13 @@
         
         .modal-textarea {
             width: 100%;
-            padding: 16px;
+            padding: 14px;
             border: 2px solid #ffe6d5;
-            border-radius: 16px;
+            border-radius: 12px;
             font-size: 16px;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             resize: none;
-            min-height: 100px;
-        }
-        
-        .modal-textarea:focus {
-            outline: none;
-            border-color: #ff8a5c;
+            min-height: 80px;
         }
         
         .modal-buttons {
@@ -198,9 +165,9 @@
         
         .modal-button {
             flex: 1;
-            padding: 16px;
+            padding: 14px;
             border: none;
-            border-radius: 16px;
+            border-radius: 12px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
@@ -216,105 +183,85 @@
             color: #2d3436;
         }
         
-        /* Кастомные маркеры */
         .custom-marker {
-            width: 44px !important;
-            height: 44px !important;
+            width: 24px !important;
+            height: 24px !important;
             background: #ff8a5c;
-            border: 3px solid white;
+            border: 2px solid white;
             border-radius: 50%;
-            box-shadow: 0 4px 12px rgba(255, 138, 92, 0.6);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 22px;
-            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(255, 138, 92, 0.4);
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: all 0.2s;
+            z-index: 10;
         }
         
-        .custom-marker:hover,
-        .custom-marker:active {
-            transform: scale(1.1);
+        .custom-marker:hover {
+            transform: scale(1.2);
+            background: #ff6b4a;
+            z-index: 100;
         }
         
-        .marker-guide {
-            background: #5b67ea;
-            box-shadow: 0 4px 12px rgba(91, 103, 234, 0.6);
-        }
-        
-        /* Попап точки */
         .point-popup {
-            padding: 16px;
-            min-width: 250px;
+            position: absolute;
+            bottom: 30px !important;
+            left: 50% !important;
+            transform: translateX(-50%);
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 10px 14px;
+            min-width: 180px;
+            max-width: 220px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
             border: 2px solid #ff8a5c;
+            font-size: 13px;
+            pointer-events: none;
+            z-index: 1000;
         }
         
-        .point-popup.guide {
-            border-color: #5b67ea;
+        .point-popup::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 8px solid #ff8a5c;
         }
         
-        .point-popup h3 {
-            font-size: 18px;
-            margin-bottom: 8px;
+        .point-popup h4 {
             color: #2d3436;
+            margin-bottom: 4px;
+            font-size: 14px;
             font-weight: 600;
         }
         
         .point-popup p {
             color: #636e72;
-            font-size: 14px;
-            margin-bottom: 10px;
-            line-height: 1.5;
-        }
-        
-        .point-popup .description {
-            background: #f8f9fc;
-            padding: 12px;
-            border-radius: 12px;
-            margin: 10px 0;
-            font-style: italic;
-            color: #2d3436;
+            font-size: 12px;
+            line-height: 1.4;
+            margin-bottom: 4px;
         }
         
         .point-popup small {
             color: #b2bec3;
-            font-size: 12px;
+            font-size: 10px;
             display: block;
-            margin: 8px 0;
         }
         
-        .point-popup .user-info {
-            background: #fff0e6;
-            padding: 8px 12px;
-            border-radius: 20px;
-            margin: 10px 0;
-            font-size: 13px;
-            color: #ff8a5c;
-            font-weight: 500;
-            display: inline-block;
-        }
-        
-        .point-popup .user-info.guide {
-            background: #e6e9ff;
-            color: #5b67ea;
-        }
-        
-        .delete-point {
-            background: #ff4444;
+        .counter {
+            position: fixed;
+            top: 130px;
+            right: 16px;
+            background: #ff8a5c;
             color: white;
-            border: none;
-            padding: 12px 16px;
-            border-radius: 24px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 12px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            z-index: 90;
+            opacity: 0.9;
         }
         
         .loading {
@@ -323,45 +270,31 @@
             left: 50%;
             transform: translate(-50%, -50%);
             background: white;
-            padding: 16px 24px;
+            padding: 12px 24px;
             border-radius: 30px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             z-index: 1000;
             color: #ff8a5c;
-            font-weight: 500;
             display: none;
         }
         
         .loading.show {
             display: block;
         }
-        
-        .counter {
-            position: fixed;
-            top: 120px;
-            right: 16px;
-            background: #ff8a5c;
-            color: white;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 500;
-            z-index: 90;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
     </style>
 </head>
 <body>
     <div class="header">
-        <div class="logo-container">
-            <div class="logo-image">WG</div>
-            <div class="title">Wanna<span>Go</span></div>
-        </div>
-        <div class="user-name" id="userName">Гость</div>
+        <div class="logo-image">WG</div>
+        <div class="title">Wanna<span>Go</span></div>
     </div>
     
-    <div class="description">
+    <div class="description-main">
         Отмечай любимые места, открывай маршруты других путешественников и создавай своё идеальное путешествие
+    </div>
+    
+    <div class="description-secondary">
+        👆 Нажми на карту чтобы добавить место · Нажми на точку чтобы увидеть описание
     </div>
     
     <div id="map"></div>
@@ -370,56 +303,34 @@
     
     <div class="modal" id="modal">
         <div class="modal-content">
-            <div class="modal-title">Новая точка</div>
-            <div class="modal-subtitle">Поделись любимым местом</div>
-            <input type="text" class="modal-input" id="pointName" placeholder="Название места" autocomplete="off">
-            <textarea class="modal-textarea" id="pointDesc" placeholder="Описание (необязательно)" rows="3"></textarea>
+            <div class="modal-title">Новое место</div>
+            <input type="text" class="modal-input" id="pointName" placeholder="Название">
+            <textarea class="modal-textarea" id="pointDesc" placeholder="Описание (необязательно)"></textarea>
             <div class="modal-buttons">
                 <button class="modal-button cancel" id="cancelBtn">Отмена</button>
-                <button class="modal-button save" id="saveBtn">Сохранить</button>
+                <button class="modal-button save" id="saveBtn">Добавить</button>
             </div>
         </div>
     </div>
     
-    <div class="counter" id="counter">0 точек</div>
-    <div class="loading" id="loading">Загрузка...</div>
+    <div class="counter" id="counter">0</div>
+    <div class="loading" id="loading">Загрузка точек...</div>
 
-    <!-- OpenLayers -->
     <script src="https://cdn.jsdelivr.net/npm/ol@v10.3.1/dist/ol.js"></script>
     
     <script>
         window.onload = async function() {
+            const loading = document.getElementById('loading');
+            loading.classList.add('show');
+            
             try {
-                const loading = document.getElementById('loading');
-                loading.classList.add('show');
+                // ===== Подключение к Supabase =====
+                const supabase = window.supabase.createClient(
+                    'https://dfhkftlzoukxgbaeqkwr.supabase.co',
+                    'sb_publishable_1jiNGUjveDwQtk7hercvdQ_82ZCFN8B'
+                );
                 
-                // ===== Telegram =====
-                const tg = window.Telegram?.WebApp;
-                let currentUser = {
-                    id: 'guest',
-                    name: 'Гость'
-                };
-                
-                if (tg) {
-                    tg.ready();
-                    tg.expand();
-                    const user = tg.initDataUnsafe?.user;
-                    if (user) {
-                        currentUser = {
-                            id: user.id?.toString() || 'guest',
-                            name: user.first_name || 'Гость'
-                        };
-                        document.getElementById('userName').textContent = currentUser.name;
-                    }
-                }
-                
-                // ===== Supabase =====
-                const SUPABASE_URL = 'https://dfhkftlzoukxgbaeqkwr.supabase.co';
-                const SUPABASE_KEY = 'sb_publishable_1jiNGUjveDwQtk7hercvdQ_82ZCFN8B';
-                
-                const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                
-                // ===== Карта =====
+                // ===== Создание карты =====
                 const map = new ol.Map({
                     target: 'map',
                     layers: [
@@ -428,319 +339,72 @@
                         })
                     ],
                     view: new ol.View({
-                        center: ol.proj.fromLonLat([37.6176, 55.7558]),
+                        center: ol.proj.fromLonLat([55.0, 55.0]),
                         zoom: 4
                     })
                 });
                 
-                // Массив для маркеров
-                const markers = [];
-                
-                // Функция создания маркера
-                function createMarkerElement(point) {
-                    const div = document.createElement('div');
-                    div.className = 'custom-marker';
-                    if (point.user_id === 'guide') {
-                        div.classList.add('marker-guide');
-                    }
-                    div.innerHTML = '📍';
-                    div.dataset.id = point.id;
-                    div.dataset.name = point.name;
-                    div.dataset.description = point.description || '';
-                    div.dataset.date = point.date;
-                    div.dataset.user = point.user_name;
-                    return div;
-                }
-                
-                // Функция добавления точки на карту
-                function addPointToMap(point) {
-                    const markerElement = createMarkerElement(point);
-                    
-                    const markerOverlay = new ol.Overlay({
-                        position: ol.proj.fromLonLat([point.lng, point.lat]),
-                        positioning: 'center-center',
-                        element: markerElement,
-                        stopEvent: false
-                    });
-                    
-                    map.addOverlay(markerOverlay);
-                    
-                    // Клик на маркере
-                    markerElement.onclick = function(e) {
-                        e.stopPropagation();
-                        
-                        // Создаем попап с описанием
-                        const popupContent = document.createElement('div');
-                        popupContent.className = 'point-popup';
-                        if (point.user_id === 'guide') {
-                            popupContent.classList.add('guide');
-                        }
-                        
-                        let descriptionHtml = '';
-                        if (point.description && point.description !== '✨ Новое место') {
-                            descriptionHtml = `<div class="description">${point.description}</div>`;
-                        }
-                        
-                        popupContent.innerHTML = `
-                            <h3>${point.name}</h3>
-                            ${descriptionHtml}
-                            <div class="user-info ${point.user_id === 'guide' ? 'guide' : ''}">👤 Добавил: ${point.user_name}</div>
-                            <small>📅 ${new Date(point.date).toLocaleDateString('ru-RU')}</small>
-                            ${point.user_id === currentUser.id ? '<button class="delete-point" data-id="' + point.id + '">Удалить</button>' : ''}
-                        `;
-                        
-                        const popup = new ol.Overlay({
-                            element: popupContent,
-                            positioning: 'top-center',
-                            offset: [0, -20],
-                            stopEvent: true
-                        });
-                        
-                        map.addOverlay(popup);
-                        popup.setPosition(ol.proj.fromLonLat([point.lng, point.lat]));
-                        
-                        // Удаление точки
-                        const deleteBtn = popupContent.querySelector('.delete-point');
-                        if (deleteBtn) {
-                            deleteBtn.onclick = async function(e) {
-                                e.stopPropagation();
-                                
-                                const { error } = await supabase
-                                    .from('points')
-                                    .delete()
-                                    .eq('id', point.id);
-                                
-                                if (!error) {
-                                    map.removeOverlay(markerOverlay);
-                                    map.removeOverlay(popup);
-                                    loadPoints();
-                                }
-                            };
-                        }
-                        
-                        // Закрытие попапа
-                        setTimeout(() => {
-                            const closePopup = function(event) {
-                                if (!popupContent.contains(event.target) && !markerElement.contains(event.target)) {
-                                    map.removeOverlay(popup);
-                                    document.removeEventListener('click', closePopup);
-                                }
-                            };
-                            document.addEventListener('click', closePopup);
-                        }, 100);
-                    };
-                    
-                    markers.push(markerOverlay);
-                }
-                
-                // ===== Популярные места для добавления =====
+                // ===== ПОПУЛЯРНЫЕ МЕСТА (23 точки) =====
                 const popularPlaces = [
-                    // Центральный федеральный округ
-                    {
-                        name: 'Красная площадь',
-                        description: 'Главная площадь Москвы и всей России',
-                        lat: 55.7539,
-                        lng: 37.6208,
-                        user_name: 'WannaGo Guide',
-                        user_id: 'guide'
-                    },
-                    {
-                        name: 'Суздальский кремль',
-                        description: 'Древнейшее сооружение города, памятник белокаменного зодчества',
-                        lat: 56.4156,
-                        lng: 40.4423,
-                        user_name: 'WannaGo Guide',
-                        user_id: 'guide'
-                    },
-                    {
-                        name: 'Троице-Сергиева лавра',
-                        description: 'Крупнейший мужской монастырь России, духовный центр православия',
-                        lat: 56.3101,
-                        lng: 38.1295,
-                        user_name: 'WannaGo Guide',
-                        user_id: 'guide'
-                    },
-                    {
-                        name: 'Музей-заповедник "Ясная Поляна"',
-                        description: 'Усадьба Льва Толстого, где он жил и работал',
-                        lat: 54.0751,
-                        lng: 37.5263,
-                        user_name: 'WannaGo Guide',
-                        user_id: 'guide'
-                    },
-                    {
-                        name: 'Сергиев Посад',
-                        description: 'Город Золотого кольца России с уникальными архитектурными памятниками',
-                        lat: 56.3150,
-                        lng: 38.1335,
-                        user_name: 'WannaGo Guide',
-                        user_id: 'guide'
-                    },
+                    // Москва и область
+                    { name: 'Красная площадь', lat: 55.7539, lng: 37.6208, desc: 'Главная площадь Москвы и всей России' },
+                    { name: 'Московский Кремль', lat: 55.7517, lng: 37.6176, desc: 'Древняя крепость и резиденция президента' },
+                    { name: 'ВДНХ', lat: 55.8239, lng: 37.6393, desc: 'Выставка достижений народного хозяйства' },
+                    { name: 'Парк Горького', lat: 55.7311, lng: 37.6022, desc: 'Центральный парк Москвы' },
                     
-                    // Урал (Свердловская область)
-                    {
-                        name: 'Уральский Марс',
-                        description: 'Заброшенный карьер огнеупорной глины с неземными ландшафтами',
-                        lat: 56.6626,
-                        lng: 62.0872,
-                        user_name: 'WannaGo Guide',
-                        user_id: 'guide'
-                    },
-                    {
-                        name: 'Природный парк "Оленьи ручьи"',
-                        description: 'Живописный парк с пещерами и скалами на реке Серга',
-                        lat: 56.5178,
-                        lng: 59.2394,
-                        user_name: 'WannaGo Guide',
-                        user_id: 'guide'
-                    },
-                    {
-                        name: 'Азов-гора',
-                        description: '"Сердце Урала" высотой 585 м, панорамный вид на город Полевской',
-                        lat: 56.4764,
-                        lng: 60.1569,
-                        user_name: 'WannaGo Guide',
-                        user_id: 'guide'
-                    },
-                    {
-                        name: 'Тальков камень',
-                        description: 'Озеро с бирюзовой водой в заброшенном карьере, глубина до 32 м',
-                        lat: 56.4592,
-                        lng: 60.7167,
-                        user_name: 'WannaGo Guide',
-                        user_id: 'guide'
-                    },
-                    {
-                        name: 'Чертово городище',
-                        description: 'Гранитные скалы на вершине горы высотой 347 м',
-                        lat: 56.8956,
-                        lng: 60.4089,
-                        user_name: 'WannaGo Guide',
-                        user_id: 'guide'
-                    },
-                    {
-                        name: 'Буддийский храм Шедруб Линг',
-                        description: 'Единственный буддийский храм на Урале на горе Качканар (878 м)',
-                        lat: 58.7769,
-                        lng: 59.3811,
-                        user_name: 'WannaGo Guide',
-                        user_id: 'guide'
-                    },
-                    {
-                        name: 'Невьянская башня',
-                        description: 'Наклонная башня Демидовых, памятник промышленной архитектуры',
-                        lat: 57.4894,
-                        lng: 60.2125,
-                        user_name: 'WannaGo Guide',
-                        user_id: 'guide'
-                    },
-                    {
-                        name: 'Дидинский тоннель',
-                        description: 'Заброшенный железнодорожный тоннель длиной более километра, построен в 1918 г.',
-                        lat: 56.8186,
-                        lng: 59.6969,
-                        user_name: 'WannaGo Guide',
-                        user_id: 'guide'
-                    },
+                    // Золотое кольцо
+                    { name: 'Суздальский кремль', lat: 56.4156, lng: 40.4423, desc: 'Древнейшее сооружение Суздаля' },
+                    { name: 'Троице-Сергиева лавра', lat: 56.3101, lng: 38.1295, desc: 'Крупнейший монастырь России' },
+                    { name: 'Ясная Поляна', lat: 54.0751, lng: 37.5263, desc: 'Усадьба Льва Толстого' },
+                    { name: 'Ростовский кремль', lat: 57.1849, lng: 39.4142, desc: 'Белоснежный кремль на озере Неро' },
                     
-                    // Челябинская область
-                    {
-                        name: 'Национальный парк "Таганай"',
-                        description: 'Уникальный парк с каменными россыпями и хребтами, площадь более 88 тыс. га',
-                        lat: 55.2608,
-                        lng: 59.7933,
-                        user_name: 'WannaGo Guide',
-                        user_id: 'guide'
-                    },
-                    {
-                        name: 'Озеро Тургояк',
-                        description: '"Младший брат Байкала" с удивительно прозрачной водой',
-                        lat: 55.1500,
-                        lng: 60.0667,
-                        user_name: 'WannaGo Guide',
-                        user_id: 'guide'
-                    },
-                    {
-                        name: 'Аракульский шихан',
-                        description: 'Гранитные скалы на берегу озера Аракуль, уникальные формы рельефа',
-                        lat: 55.9877,
-                        lng: 60.4905,
-                        user_name: 'WannaGo Guide',
-                        user_id: 'guide'
-                    },
-                    {
-                        name: 'Пороги в Сатке',
-                        description: 'Урочище с плотиной гидроэлектростанции и могучими водопадами',
-                        lat: 55.1825,
-                        lng: 58.9900,
-                        user_name: 'WannaGo Guide',
-                        user_id: 'guide'
-                    },
-                    {
-                        name: 'Аркаим',
-                        description: 'Древнее поселение эпохи бронзы, музей-заповедник',
-                        lat: 52.6496,
-                        lng: 59.5712,
-                        user_name: 'WannaGo Guide',
-                        user_id: 'guide'
-                    },
+                    // Санкт-Петербург
+                    { name: 'Эрмитаж', lat: 59.9398, lng: 30.3146, desc: 'Зимний дворец и музей мирового искусства' },
+                    { name: 'Петродворец', lat: 59.8849, lng: 29.9097, desc: 'Столица фонтанов и дворцов' },
+                    { name: 'Исаакиевский собор', lat: 59.9340, lng: 30.3061, desc: 'Величайший православный храм Петербурга' },
                     
-                    // Пермский край
-                    {
-                        name: 'Большая Пашийская пещера',
-                        description: 'Пещера с подземным водопадом, длина ходов 520 м',
-                        lat: 58.4206,
-                        lng: 58.2246,
-                        user_name: 'WannaGo Guide',
-                        user_id: 'guide'
-                    },
-                    {
-                        name: 'Говорливый камень',
-                        description: 'Живописный утес на реке Вишера с уникальным эхом',
-                        lat: 60.5070,
-                        lng: 57.2650,
-                        user_name: 'WannaGo Guide',
-                        user_id: 'guide'
-                    },
-                    {
-                        name: 'Дивья пещера',
-                        description: 'Одна из красивейших пещер Урала длиной более 10 км',
-                        lat: 58.2841,
-                        lng: 56.5978,
-                        user_name: 'WannaGo Guide',
-                        user_id: 'guide'
-                    }
+                    // Урал
+                    { name: 'Уральский Марс', lat: 56.6626, lng: 62.0872, desc: 'Заброшенный карьер с неземными ландшафтами' },
+                    { name: 'Оленьи ручьи', lat: 56.5178, lng: 59.2394, desc: 'Природный парк с пещерами и скалами' },
+                    { name: 'Азов-гора', lat: 56.4764, lng: 60.1569, desc: '"Сердце Урала" с панорамным видом' },
+                    { name: 'Тальков камень', lat: 56.4592, lng: 60.7167, desc: 'Озеро с бирюзовой водой в карьере' },
+                    { name: 'Чертово городище', lat: 56.8956, lng: 60.4089, desc: 'Гранитные скалы на вершине горы' },
+                    { name: 'Невьянская башня', lat: 57.4894, lng: 60.2125, desc: 'Наклонная башня Демидовых' },
+                    { name: 'Таганай', lat: 55.2608, lng: 59.7933, desc: 'Национальный парк с каменными россыпями' },
+                    { name: 'Озеро Тургояк', lat: 55.1500, lng: 60.0667, desc: '"Младший брат Байкала" с чистейшей водой' },
+                    { name: 'Аркаим', lat: 52.6496, lng: 59.5712, desc: 'Древнее поселение эпохи бронзы' },
+                    { name: 'Дивья пещера', lat: 58.2841, lng: 56.5978, desc: 'Одна из красивейших пещер Урала' },
+                    { name: 'Пороги в Сатке', lat: 55.1825, lng: 58.9900, desc: 'Плотина ГЭС и могучие водопады' },
+                    { name: 'Аракульский шихан', lat: 55.9877, lng: 60.4905, desc: 'Гранитные скалы на берегу озера' }
                 ];
                 
-                // ===== Проверяем и добавляем популярные места =====
-                async function ensurePopularPlaces() {
-                    // Проверяем, есть ли уже точки от гида
-                    const { data: guidePoints } = await supabase
+                // ===== Проверяем и добавляем точки =====
+                async function initializePoints() {
+                    // Проверяем, сколько точек в базе
+                    const { data: existingPoints, count } = await supabase
                         .from('points')
-                        .select('*')
-                        .eq('user_id', 'guide');
+                        .select('*', { count: 'exact' });
                     
-                    // Если нет точек от гида или их меньше 20, добавляем все
-                    if (!guidePoints || guidePoints.length < 20) {
+                    console.log('Существующие точки:', count || 0);
+                    
+                    // Если точек меньше 20 - добавляем популярные
+                    if (!count || count < 20) {
                         console.log('Добавляем популярные места...');
                         
                         for (const place of popularPlaces) {
-                            // Проверяем, есть ли уже такая точка
+                            // Проверяем, есть ли уже такое место
                             const { data: existing } = await supabase
                                 .from('points')
                                 .select('*')
-                                .eq('name', place.name)
-                                .eq('user_id', 'guide');
+                                .eq('name', place.name);
                             
                             if (!existing || existing.length === 0) {
                                 const newPoint = {
-                                    id: Date.now() + Math.random() * 1000,
+                                    id: Date.now() + Math.random(),
                                     lat: place.lat,
                                     lng: place.lng,
                                     name: place.name,
-                                    description: place.description,
-                                    user_name: place.user_name,
-                                    user_id: place.user_id,
+                                    description: place.desc,
                                     date: new Date().toISOString()
                                 };
                                 
@@ -750,129 +414,138 @@
                     }
                 }
                 
-                // ===== Загрузка точек из Supabase =====
-                async function loadPoints() {
-                    // Сначала добавляем популярные места
-                    await ensurePopularPlaces();
+                // Запускаем инициализацию
+                await initializePoints();
+                
+                // ===== Загружаем все точки =====
+                const { data: points, error } = await supabase
+                    .from('points')
+                    .select('*')
+                    .order('name');
+                
+                if (error) throw error;
+                
+                console.log('Загружено точек:', points.length);
+                
+                // ===== Создаем маркеры для всех точек =====
+                const markers = [];
+                
+                points.forEach(point => {
+                    const markerDiv = document.createElement('div');
+                    markerDiv.className = 'custom-marker';
                     
-                    // Загружаем все точки
-                    const { data, error } = await supabase
-                        .from('points')
-                        .select('*')
-                        .order('date', { ascending: false });
+                    const position = ol.proj.fromLonLat([point.lng, point.lat]);
                     
-                    if (error) {
-                        console.error('Ошибка загрузки:', error);
-                        return;
+                    const markerOverlay = new ol.Overlay({
+                        position: position,
+                        element: markerDiv,
+                        stopEvent: true
+                    });
+                    
+                    map.addOverlay(markerOverlay);
+                    
+                    function showDesc() {
+                        document.querySelectorAll('.point-popup').forEach(el => el.remove());
+                        
+                        const popupDiv = document.createElement('div');
+                        popupDiv.className = 'point-popup';
+                        popupDiv.innerHTML = `
+                            <h4>${point.name}</h4>
+                            <p>${point.description || 'Интересное место'}</p>
+                            <small>${new Date(point.date).toLocaleDateString('ru-RU')}</small>
+                        `;
+                        
+                        markerDiv.appendChild(popupDiv);
+                        
+                        setTimeout(() => {
+                            if (popupDiv.parentNode) {
+                                popupDiv.remove();
+                            }
+                        }, 3000);
                     }
                     
-                    // Очищаем старые маркеры
-                    markers.forEach(m => map.removeOverlay(m));
-                    markers.length = 0;
+                    markerDiv.addEventListener('mouseenter', showDesc);
+                    markerDiv.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        showDesc();
+                    });
                     
-                    // Добавляем новые
-                    data.forEach(point => addPointToMap(point));
-                    
-                    document.getElementById('counter').textContent = `${data.length} точек`;
-                    loading.classList.remove('show');
-                }
-                
-                // Загружаем точки
-                await loadPoints();
-                
-                // Подписка на изменения в реальном времени
-                supabase
-                    .channel('points')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'points' }, 
-                        () => loadPoints())
-                    .subscribe();
-                
-                // ===== Добавление новой точки =====
-                let newPointLonLat = null;
-                const modal = document.getElementById('modal');
-                const pointName = document.getElementById('pointName');
-                const pointDesc = document.getElementById('pointDesc');
-                
-                // Клик на карте
-                map.on('click', function(e) {
-                    const lonLat = ol.proj.toLonLat(e.coordinate);
-                    newPointLonLat = {
-                        lon: lonLat[0],
-                        lat: lonLat[1]
-                    };
-                    modal.classList.add('show');
-                    pointName.value = '';
-                    pointDesc.value = '';
-                    setTimeout(() => pointName.focus(), 300);
+                    markers.push(markerOverlay);
                 });
                 
-                // Геолокация
+                // Обновляем счетчик
+                document.getElementById('counter').textContent = points.length + ' мест';
+                loading.classList.remove('show');
+                
+                // ===== Добавление новой точки =====
+                let newLat = null, newLng = null;
+                const modal = document.getElementById('modal');
+                
+                map.on('click', function(e) {
+                    const coords = ol.proj.toLonLat(e.coordinate);
+                    newLat = coords[1];
+                    newLng = coords[0];
+                    modal.classList.add('show');
+                    document.getElementById('pointName').value = '';
+                    document.getElementById('pointDesc').value = '';
+                });
+                
                 document.getElementById('addBtn').onclick = function() {
                     if (navigator.geolocation) {
-                        navigator.geolocation.getCurrentPosition(
-                            function(position) {
-                                const coords = ol.proj.fromLonLat([position.coords.longitude, position.coords.latitude]);
-                                map.getView().animate({
-                                    center: coords,
-                                    zoom: 12,
-                                    duration: 1000
-                                });
-                                
-                                newPointLonLat = {
-                                    lon: position.coords.longitude,
-                                    lat: position.coords.latitude
-                                };
-                                
-                                setTimeout(() => {
-                                    modal.classList.add('show');
-                                    pointName.focus();
-                                }, 1000);
-                            }
-                        );
+                        navigator.geolocation.getCurrentPosition(function(pos) {
+                            const coords = ol.proj.fromLonLat([pos.coords.longitude, pos.coords.latitude]);
+                            map.getView().animate({
+                                center: coords,
+                                zoom: 10
+                            });
+                            newLat = pos.coords.latitude;
+                            newLng = pos.coords.longitude;
+                            modal.classList.add('show');
+                        });
                     }
                 };
                 
-                // Отмена
                 document.getElementById('cancelBtn').onclick = function() {
                     modal.classList.remove('show');
-                    newPointLonLat = null;
+                    newLat = newLng = null;
                 };
                 
-                // Сохранение
                 document.getElementById('saveBtn').onclick = async function() {
-                    if (!newPointLonLat) return;
-                    
-                    const name = pointName.value.trim();
+                    const name = document.getElementById('pointName').value.trim();
                     if (!name) {
-                        alert('Введите название места');
+                        alert('Введите название');
                         return;
                     }
                     
                     const newPoint = {
                         id: Date.now(),
-                        lat: newPointLonLat.lat,
-                        lng: newPointLonLat.lon,
+                        lat: newLat,
+                        lng: newLng,
                         name: name,
-                        description: pointDesc.value.trim() || '',
-                        user_name: currentUser.name,
-                        user_id: currentUser.id,
+                        description: document.getElementById('pointDesc').value.trim() || 'Интересное место',
                         date: new Date().toISOString()
                     };
                     
-                    const { error } = await supabase
-                        .from('points')
-                        .insert([newPoint]);
+                    const { error } = await supabase.from('points').insert([newPoint]);
                     
                     if (!error) {
                         modal.classList.remove('show');
-                        newPointLonLat = null;
-                        if (tg) tg.HapticFeedback?.impactOccurred('medium');
+                        newLat = newLng = null;
+                        location.reload();
                     }
                 };
                 
-            } catch (e) {
-                console.error('Ошибка:', e);
-                alert('Ошибка: ' + e.message);
+                supabase
+                    .channel('points')
+                    .on('postgres_changes', 
+                        { event: '*', schema: 'public', table: 'points' }, 
+                        () => location.reload())
+                    .subscribe();
+                
+            } catch (error) {
+                console.error('Ошибка:', error);
+                loading.innerHTML = 'Ошибка загрузки';
+                setTimeout(() => loading.classList.remove('show'), 2000);
             }
         };
     </script>
