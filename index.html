@@ -8,6 +8,9 @@
     <!-- OpenLayers CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v10.3.1/ol.css" />
     
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <style>
         * {
             margin: 0;
@@ -24,15 +27,20 @@
             overflow: hidden;
         }
         
-        /* Шапка */
         .header {
             padding: 12px 16px;
             background: white;
             border-bottom: 1px solid #ffe6d5;
             display: flex;
             align-items: center;
-            gap: 12px;
+            justify-content: space-between;
             flex-shrink: 0;
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
         
         .logo-image {
@@ -57,7 +65,15 @@
             color: #ff8a5c;
         }
         
-        /* Описание */
+        .user-name {
+            font-size: 14px;
+            color: #ff8a5c;
+            font-weight: 500;
+            background: #fff0e6;
+            padding: 6px 12px;
+            border-radius: 20px;
+        }
+        
         .description {
             padding: 12px 16px;
             background: #fff8f0;
@@ -69,14 +85,12 @@
             flex-shrink: 0;
         }
         
-        /* Карта */
         #map {
             flex: 1;
             width: 100%;
             z-index: 1;
         }
         
-        /* Кнопка добавления */
         .add-button {
             position: fixed;
             bottom: 20px;
@@ -102,7 +116,6 @@
             transform: scale(0.95);
         }
         
-        /* Модальное окно */
         .modal {
             position: fixed;
             top: 0;
@@ -128,16 +141,11 @@
             width: 100%;
             max-width: 500px;
             animation: slideUp 0.3s ease;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
         }
         
         @keyframes slideUp {
-            from {
-                transform: translateY(100%);
-            }
-            to {
-                transform: translateY(0);
-            }
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
         }
         
         .modal-title {
@@ -160,9 +168,6 @@
             border-radius: 16px;
             font-size: 16px;
             margin-bottom: 12px;
-            font-family: inherit;
-            background: white;
-            -webkit-appearance: none;
         }
         
         .modal-input:focus {
@@ -177,11 +182,8 @@
             border-radius: 16px;
             font-size: 16px;
             margin-bottom: 24px;
-            font-family: inherit;
             resize: none;
             min-height: 100px;
-            background: white;
-            -webkit-appearance: none;
         }
         
         .modal-textarea:focus {
@@ -202,12 +204,6 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: opacity 0.2s;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        .modal-button:active {
-            opacity: 0.7;
         }
         
         .save {
@@ -220,10 +216,10 @@
             color: #2d3436;
         }
         
-        /* Стиль для маркеров (оранжевые круги) */
+        /* Кастомные маркеры */
         .custom-marker {
-            width: 40px !important;
-            height: 40px !important;
+            width: 44px !important;
+            height: 44px !important;
             background: #ff8a5c;
             border: 3px solid white;
             border-radius: 50%;
@@ -232,7 +228,7 @@
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 20px;
+            font-size: 22px;
             font-weight: bold;
             cursor: pointer;
             transition: transform 0.2s;
@@ -245,10 +241,10 @@
         
         /* Попап точки */
         .point-popup {
-            padding: 12px;
-            min-width: 220px;
+            padding: 16px;
+            min-width: 250px;
             background: white;
-            border-radius: 16px;
+            border-radius: 20px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.2);
             border: 2px solid #ff8a5c;
         }
@@ -267,21 +263,31 @@
             line-height: 1.5;
         }
         
+        .point-popup .description {
+            background: #f8f9fc;
+            padding: 12px;
+            border-radius: 12px;
+            margin: 10px 0;
+            font-style: italic;
+            color: #2d3436;
+        }
+        
         .point-popup small {
             color: #b2bec3;
             font-size: 12px;
             display: block;
-            margin-bottom: 12px;
+            margin: 8px 0;
         }
         
         .point-popup .user-info {
-            background: #fff8f0;
+            background: #fff0e6;
             padding: 8px 12px;
-            border-radius: 12px;
-            margin: 8px 0;
+            border-radius: 20px;
+            margin: 10px 0;
             font-size: 13px;
             color: #ff8a5c;
             font-weight: 500;
+            display: inline-block;
         }
         
         .delete-point {
@@ -294,20 +300,9 @@
             font-weight: 600;
             cursor: pointer;
             width: 100%;
-            margin-top: 10px;
-            -webkit-tap-highlight-color: transparent;
+            margin-top: 12px;
         }
         
-        .delete-point:active {
-            opacity: 0.7;
-        }
-        
-        /* Оверлей для OL */
-        .ol-overlay-container {
-            z-index: 50;
-        }
-        
-        /* Анимация загрузки */
         .loading {
             position: fixed;
             top: 50%;
@@ -326,12 +321,29 @@
         .loading.show {
             display: block;
         }
+        
+        .counter {
+            position: fixed;
+            top: 120px;
+            right: 16px;
+            background: #ff8a5c;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            z-index: 90;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body>
     <div class="header">
-        <div class="logo-image">WG</div>
-        <div class="title">Wanna<span>Go</span></div>
+        <div class="logo-container">
+            <div class="logo-image">WG</div>
+            <div class="title">Wanna<span>Go</span></div>
+        </div>
+        <div class="user-name" id="userName">Гость</div>
     </div>
     
     <div class="description">
@@ -346,8 +358,8 @@
         <div class="modal-content">
             <div class="modal-title">Новая точка</div>
             <div class="modal-subtitle">Поделись любимым местом</div>
-            <input type="text" class="modal-input" id="pointName" placeholder="Название места" autocomplete="off" inputmode="text">
-            <textarea class="modal-textarea" id="pointDesc" placeholder="Описание (необязательно)" rows="3" inputmode="text"></textarea>
+            <input type="text" class="modal-input" id="pointName" placeholder="Название места" autocomplete="off">
+            <textarea class="modal-textarea" id="pointDesc" placeholder="Описание (необязательно)" rows="3"></textarea>
             <div class="modal-buttons">
                 <button class="modal-button cancel" id="cancelBtn">Отмена</button>
                 <button class="modal-button save" id="saveBtn">Сохранить</button>
@@ -355,18 +367,45 @@
         </div>
     </div>
     
-    <div class="loading" id="loading">Загрузка точек...</div>
+    <div class="counter" id="counter">0 точек</div>
+    <div class="loading" id="loading">Загрузка...</div>
 
-    <!-- OpenLayers JavaScript -->
+    <!-- OpenLayers -->
     <script src="https://cdn.jsdelivr.net/npm/ol@v10.3.1/dist/ol.js"></script>
     
     <script>
-        window.onload = function() {
+        window.onload = async function() {
             try {
                 const loading = document.getElementById('loading');
                 loading.classList.add('show');
                 
-                // Создаем карту
+                // ===== Telegram =====
+                const tg = window.Telegram?.WebApp;
+                let currentUser = {
+                    id: 'guest',
+                    name: 'Гость'
+                };
+                
+                if (tg) {
+                    tg.ready();
+                    tg.expand();
+                    const user = tg.initDataUnsafe?.user;
+                    if (user) {
+                        currentUser = {
+                            id: user.id?.toString() || 'guest',
+                            name: user.first_name || 'Гость'
+                        };
+                        document.getElementById('userName').textContent = currentUser.name;
+                    }
+                }
+                
+                // ===== Supabase =====
+                const SUPABASE_URL = 'https://dfhkftlzoukxgbaeqkwr.supabase.co';
+                const SUPABASE_KEY = 'sb_publishable_1jiNGUjveDwQtk7hercvdQ_82ZCFN8B';
+                
+                const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                
+                // ===== Карта =====
                 const map = new ol.Map({
                     target: 'map',
                     layers: [
@@ -380,22 +419,25 @@
                     })
                 });
                 
-                // Массив для хранения точек и маркеров
-                let points = [];
+                // Массив для маркеров
                 const markers = [];
                 
-                // Функция создания кастомного маркера
-                function createMarkerElement() {
+                // Функция создания маркера
+                function createMarkerElement(point) {
                     const div = document.createElement('div');
                     div.className = 'custom-marker';
                     div.innerHTML = '📍';
+                    div.dataset.id = point.id;
+                    div.dataset.name = point.name;
+                    div.dataset.description = point.description || '';
+                    div.dataset.date = point.date;
+                    div.dataset.user = point.user_name;
                     return div;
                 }
                 
-                // Функция создания маркера
-                function createMarker(point) {
-                    // Создаем оверлей с кастомным элементом
-                    const markerElement = createMarkerElement();
+                // Функция добавления точки на карту
+                function addPointToMap(point) {
+                    const markerElement = createMarkerElement(point);
                     
                     const markerOverlay = new ol.Overlay({
                         position: ol.proj.fromLonLat([point.lng, point.lat]),
@@ -406,32 +448,25 @@
                     
                     map.addOverlay(markerOverlay);
                     
-                    // Сохраняем данные точки в элементе
-                    markerElement.dataset.id = point.id;
-                    markerElement.dataset.name = point.name;
-                    markerElement.dataset.description = point.description || '';
-                    markerElement.dataset.date = point.date;
-                    markerElement.dataset.user = point.user || 'Гость';
-                    
-                    // Обработчик клика на маркер
+                    // Клик на маркере
                     markerElement.onclick = function(e) {
                         e.stopPropagation();
                         
-                        const id = this.dataset.id;
-                        const name = this.dataset.name;
-                        const description = this.dataset.description;
-                        const date = this.dataset.date;
-                        const user = this.dataset.user;
-                        
-                        // Создаем попап
+                        // Создаем попап с описанием
                         const popupContent = document.createElement('div');
                         popupContent.className = 'point-popup';
+                        
+                        let descriptionHtml = '';
+                        if (point.description && point.description !== '✨ Новое место') {
+                            descriptionHtml = `<div class="description">${point.description}</div>`;
+                        }
+                        
                         popupContent.innerHTML = `
-                            <h3>${name}</h3>
-                            <p>${description || '✨ Без описания'}</p>
-                            <div class="user-info">👤 Добавил: ${user}</div>
-                            <small>📅 ${new Date(parseInt(date)).toLocaleDateString('ru-RU')}</small>
-                            <button class="delete-point" data-id="${id}">Удалить</button>
+                            <h3>${point.name}</h3>
+                            ${descriptionHtml}
+                            <div class="user-info">👤 Добавил: ${point.user_name}</div>
+                            <small>📅 ${new Date(point.date).toLocaleDateString('ru-RU')}</small>
+                            ${point.user_id === currentUser.id ? '<button class="delete-point" data-id="' + point.id + '">Удалить</button>' : ''}
                         `;
                         
                         const popup = new ol.Overlay({
@@ -445,31 +480,25 @@
                         popup.setPosition(ol.proj.fromLonLat([point.lng, point.lat]));
                         
                         // Удаление точки
-                        popupContent.querySelector('.delete-point').onclick = async function(e) {
-                            e.stopPropagation();
-                            
-                            // Удаляем из массива
-                            points = points.filter(p => p.id != id);
-                            
-                            // Удаляем маркер с карты
-                            map.removeOverlay(markerOverlay);
-                            
-                            // Удаляем попап
-                            map.removeOverlay(popup);
-                            
-                            // Сохраняем в localStorage
-                            localStorage.setItem('wannago_points', JSON.stringify(points));
-                            
-                            // Отправляем в Telegram (если есть)
-                            if (window.tg) {
-                                window.tg.sendData(JSON.stringify({
-                                    action: 'delete_point',
-                                    point_id: id
-                                }));
-                            }
-                        };
+                        const deleteBtn = popupContent.querySelector('.delete-point');
+                        if (deleteBtn) {
+                            deleteBtn.onclick = async function(e) {
+                                e.stopPropagation();
+                                
+                                const { error } = await supabase
+                                    .from('points')
+                                    .delete()
+                                    .eq('id', point.id);
+                                
+                                if (!error) {
+                                    map.removeOverlay(markerOverlay);
+                                    map.removeOverlay(popup);
+                                    loadPoints();
+                                }
+                            };
+                        }
                         
-                        // Закрытие попапа при клике вне его
+                        // Закрытие попапа
                         setTimeout(() => {
                             const closePopup = function(event) {
                                 if (!popupContent.contains(event.target) && !markerElement.contains(event.target)) {
@@ -481,69 +510,47 @@
                         }, 100);
                     };
                     
-                    markers.push({
-                        overlay: markerOverlay,
-                        id: point.id
-                    });
+                    markers.push(markerOverlay);
+                }
+                
+                // Загрузка точек из Supabase
+                async function loadPoints() {
+                    const { data, error } = await supabase
+                        .from('points')
+                        .select('*')
+                        .order('date', { ascending: false });
                     
-                    return markerOverlay;
+                    if (error) {
+                        console.error('Ошибка загрузки:', error);
+                        return;
+                    }
+                    
+                    // Очищаем старые маркеры
+                    markers.forEach(m => map.removeOverlay(m));
+                    markers.length = 0;
+                    
+                    // Добавляем новые
+                    data.forEach(point => addPointToMap(point));
+                    
+                    document.getElementById('counter').textContent = `${data.length} точек`;
+                    loading.classList.remove('show');
                 }
                 
-                // Загружаем точки из localStorage
-                const savedPoints = localStorage.getItem('wannago_points');
-                if (savedPoints) {
-                    points = JSON.parse(savedPoints);
-                } else {
-                    // Тестовые точки
-                    points = [
-                        {
-                            id: Date.now() - 1000,
-                            lat: 55.7558,
-                            lng: 37.6176,
-                            name: 'Красная площадь',
-                            description: 'Главная площадь страны',
-                            user: 'Анна',
-                            date: Date.now() - 86400000
-                        },
-                        {
-                            id: Date.now() - 2000,
-                            lat: 55.7517,
-                            lng: 37.5738,
-                            name: 'Москва-Сити',
-                            description: 'Деловой центр',
-                            user: 'Михаил',
-                            date: Date.now() - 172800000
-                        }
-                    ];
-                    localStorage.setItem('wannago_points', JSON.stringify(points));
-                }
+                // Загружаем точки
+                await loadPoints();
                 
-                // Отображаем все точки
-                points.forEach(point => createMarker(point));
+                // Подписка на изменения в реальном времени
+                supabase
+                    .channel('points')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'points' }, 
+                        () => loadPoints())
+                    .subscribe();
                 
-                loading.classList.remove('show');
-                
-                // Переменные для новой точки
+                // ===== Добавление новой точки =====
                 let newPointLonLat = null;
                 const modal = document.getElementById('modal');
                 const pointName = document.getElementById('pointName');
                 const pointDesc = document.getElementById('pointDesc');
-                const cancelBtn = document.getElementById('cancelBtn');
-                const saveBtn = document.getElementById('saveBtn');
-                const addBtn = document.getElementById('addBtn');
-                
-                // Telegram
-                const tg = window.Telegram?.WebApp;
-                let currentUser = 'Гость';
-                
-                if (tg) {
-                    tg.ready();
-                    tg.expand();
-                    const user = tg.initDataUnsafe?.user;
-                    if (user) {
-                        currentUser = user.first_name || 'Гость';
-                    }
-                }
                 
                 // Клик на карте
                 map.on('click', function(e) {
@@ -555,14 +562,11 @@
                     modal.classList.add('show');
                     pointName.value = '';
                     pointDesc.value = '';
-                    
-                    setTimeout(() => {
-                        pointName.focus();
-                    }, 300);
+                    setTimeout(() => pointName.focus(), 300);
                 });
                 
-                // Кнопка геолокации
-                addBtn.onclick = function() {
+                // Геолокация
+                document.getElementById('addBtn').onclick = function() {
                     if (navigator.geolocation) {
                         navigator.geolocation.getCurrentPosition(
                             function(position) {
@@ -582,22 +586,19 @@
                                     modal.classList.add('show');
                                     pointName.focus();
                                 }, 1000);
-                            },
-                            function(error) {
-                                alert('Не удалось определить местоположение');
                             }
                         );
                     }
                 };
                 
                 // Отмена
-                cancelBtn.onclick = function() {
+                document.getElementById('cancelBtn').onclick = function() {
                     modal.classList.remove('show');
                     newPointLonLat = null;
                 };
                 
                 // Сохранение
-                saveBtn.onclick = function() {
+                document.getElementById('saveBtn').onclick = async function() {
                     if (!newPointLonLat) return;
                     
                     const name = pointName.value.trim();
@@ -611,26 +612,26 @@
                         lat: newPointLonLat.lat,
                         lng: newPointLonLat.lon,
                         name: name,
-                        description: pointDesc.value.trim() || '✨ Новое место',
-                        user: currentUser,
-                        date: Date.now()
+                        description: pointDesc.value.trim() || '',
+                        user_name: currentUser.name,
+                        user_id: currentUser.id,
+                        date: new Date().toISOString()
                     };
                     
-                    points.push(newPoint);
-                    localStorage.setItem('wannago_points', JSON.stringify(points));
-                    createMarker(newPoint);
+                    const { error } = await supabase
+                        .from('points')
+                        .insert([newPoint]);
                     
-                    modal.classList.remove('show');
-                    newPointLonLat = null;
-                    
-                    if (tg) {
-                        tg.HapticFeedback?.impactOccurred('medium');
+                    if (!error) {
+                        modal.classList.remove('show');
+                        newPointLonLat = null;
+                        if (tg) tg.HapticFeedback?.impactOccurred('medium');
                     }
                 };
                 
             } catch (e) {
                 console.error('Ошибка:', e);
-                alert('Ошибка загрузки карты: ' + e.message);
+                alert('Ошибка: ' + e.message);
             }
         };
     </script>
