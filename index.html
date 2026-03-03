@@ -35,7 +35,6 @@
             gap: 12px;
         }
         
-        /* Логотип - теперь с правильной ссылкой */
         .logo-image {
             width: 40px;
             height: 40px;
@@ -194,31 +193,41 @@
             box-shadow: 0 2px 8px rgba(255, 138, 92, 0.4);
             cursor: pointer;
             transition: all 0.2s;
+            position: relative;
         }
         
         .custom-marker:hover {
             transform: scale(1.2);
-            background: #ff6b4a;
-        }
-        
-        .point-popup {
-            position: absolute;
-            bottom: 30px !important;
-            left: 50% !important;
-            transform: translateX(-50%);
-            background: white;
-            border-radius: 12px;
-            padding: 10px 14px;
-            min-width: 180px;
-            max-width: 220px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-            border: 2px solid #ff8a5c;
-            font-size: 13px;
-            pointer-events: none;
             z-index: 1000;
         }
         
-        .point-popup::after {
+        /* Попап для наведения (компьютер) */
+        .hover-popup {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            border-radius: 12px;
+            padding: 8px 12px;
+            min-width: 160px;
+            max-width: 200px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            border: 2px solid #ff8a5c;
+            font-size: 12px;
+            pointer-events: none;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: none;
+            z-index: 2000;
+        }
+        
+        .custom-marker:hover .hover-popup {
+            display: block;
+        }
+        
+        .hover-popup::after {
             content: '';
             position: absolute;
             bottom: -8px;
@@ -231,24 +240,81 @@
             border-top: 8px solid #ff8a5c;
         }
         
-        .point-popup h4 {
-            color: #2d3436;
-            margin-bottom: 4px;
-            font-size: 14px;
-            font-weight: 600;
-        }
-        
-        .point-popup p {
-            color: #636e72;
-            font-size: 12px;
-            line-height: 1.4;
-            margin-bottom: 4px;
-        }
-        
-        .point-popup small {
-            color: #b2bec3;
-            font-size: 10px;
+        .hover-popup span {
             display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .hover-popup .name {
+            font-weight: 600;
+            color: #2d3436;
+            margin-bottom: 2px;
+        }
+        
+        .hover-popup .desc {
+            color: #636e72;
+            font-size: 11px;
+        }
+        
+        /* Попап для телефона (на весь экран снизу) */
+        .popup-overlay {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 24px 24px 0 0;
+            padding: 24px;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.2);
+            border-top: 3px solid #ff8a5c;
+            z-index: 1000;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            max-height: 50vh;
+            overflow-y: auto;
+        }
+        
+        .popup-overlay.show {
+            transform: translateY(0);
+        }
+        
+        .popup-overlay h3 {
+            font-size: 20px;
+            margin-bottom: 12px;
+            color: #2d3436;
+            padding-right: 40px;
+        }
+        
+        .popup-overlay p {
+            color: #636e72;
+            font-size: 15px;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+        
+        .popup-overlay small {
+            color: #b2bec3;
+            font-size: 13px;
+            display: block;
+            margin-bottom: 16px;
+        }
+        
+        .popup-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 28px;
+            color: #b2bec3;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: #f8f9fc;
         }
         
         .counter {
@@ -264,29 +330,17 @@
             opacity: 0.9;
         }
         
-        .loading {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 12px 24px;
-            border-radius: 30px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            z-index: 1000;
-            color: #ff8a5c;
-            display: none;
-        }
-        
-        .loading.show {
-            display: block;
+        /* Скрываем hover-попап на телефонах */
+        @media (max-width: 768px) {
+            .hover-popup {
+                display: none !important;
+            }
         }
     </style>
 </head>
 <body>
     <div class="header">
         <div class="logo-image">
-            <!-- ВАШ ЛОГОТИП - прямая ссылка с GitHub -->
             <img src="https://github.com/alinacompy/WannaGo/raw/main/images/logo.jpg" alt="WannaGo">
         </div>
         <div class="title">Wanna<span>Go</span></div>
@@ -297,7 +351,7 @@
     </div>
     
     <div class="description-secondary">
-        👆 Нажми на карту чтобы добавить место · Нажми на точку чтобы увидеть описание
+        👆 Нажми на карту чтобы добавить место · Наведи на точку для описания
     </div>
     
     <div id="map"></div>
@@ -316,16 +370,20 @@
         </div>
     </div>
     
+    <!-- Попап для телефона -->
+    <div class="popup-overlay" id="popup">
+        <span class="popup-close" id="closePopup">×</span>
+        <h3 id="popupTitle"></h3>
+        <p id="popupDesc"></p>
+        <small id="popupDate"></small>
+    </div>
+    
     <div class="counter" id="counter">0</div>
-    <div class="loading" id="loading">Загрузка точек...</div>
 
     <script src="https://cdn.jsdelivr.net/npm/ol@v10.3.1/dist/ol.js"></script>
     
     <script>
         window.onload = async function() {
-            const loading = document.getElementById('loading');
-            loading.classList.add('show');
-            
             try {
                 // ===== Подключение к Supabase =====
                 const supabase = window.supabase.createClient(
@@ -347,24 +405,17 @@
                     })
                 });
                 
-                // ===== ПОПУЛЯРНЫЕ МЕСТА (20 точек) =====
+                // ===== Популярные места =====
                 const popularPlaces = [
-                    // Москва и область
                     { name: 'Красная площадь', lat: 55.7539, lng: 37.6208, desc: 'Главная площадь Москвы' },
                     { name: 'Московский Кремль', lat: 55.7517, lng: 37.6176, desc: 'Древняя крепость' },
                     { name: 'ВДНХ', lat: 55.8239, lng: 37.6393, desc: 'Выставка достижений' },
-                    
-                    // Золотое кольцо
                     { name: 'Суздальский кремль', lat: 56.4156, lng: 40.4423, desc: 'Древний кремль' },
                     { name: 'Троице-Сергиева лавра', lat: 56.3101, lng: 38.1295, desc: 'Крупнейший монастырь' },
                     { name: 'Ясная Поляна', lat: 54.0751, lng: 37.5263, desc: 'Усадьба Толстого' },
-                    
-                    // Санкт-Петербург
                     { name: 'Эрмитаж', lat: 59.9398, lng: 30.3146, desc: 'Зимний дворец' },
                     { name: 'Петродворец', lat: 59.8849, lng: 29.9097, desc: 'Столица фонтанов' },
                     { name: 'Исаакиевский собор', lat: 59.9340, lng: 30.3061, desc: 'Величайший храм' },
-                    
-                    // Урал
                     { name: 'Уральский Марс', lat: 56.6626, lng: 62.0872, desc: 'Неземной ландшафт' },
                     { name: 'Оленьи ручьи', lat: 56.5178, lng: 59.2394, desc: 'Природный парк' },
                     { name: 'Азов-гора', lat: 56.4764, lng: 60.1569, desc: 'Сердце Урала' },
@@ -377,50 +428,39 @@
                     { name: 'Дивья пещера', lat: 58.2841, lng: 56.5978, desc: 'Красивейшая пещера' }
                 ];
                 
-                // ===== ПРИНУДИТЕЛЬНО добавляем точки в базу =====
-                async function addPlacesToDatabase() {
+                // ===== Добавляем точки в базу если их нет =====
+                const { data: existingPoints } = await supabase.from('points').select('*');
+                
+                if (!existingPoints || existingPoints.length === 0) {
                     for (const place of popularPlaces) {
-                        // Проверяем, есть ли уже такое место
-                        const { data: existing } = await supabase
-                            .from('points')
-                            .select('*')
-                            .eq('name', place.name);
-                        
-                        // Если нет - добавляем
-                        if (!existing || existing.length === 0) {
-                            const newPoint = {
-                                id: Date.now() + Math.random(),
-                                lat: place.lat,
-                                lng: place.lng,
-                                name: place.name,
-                                description: place.desc,
-                                date: new Date().toISOString()
-                            };
-                            
-                            await supabase.from('points').insert([newPoint]);
-                            console.log('Добавлено:', place.name);
-                        }
+                        const newPoint = {
+                            id: Date.now() + Math.random(),
+                            lat: place.lat,
+                            lng: place.lng,
+                            name: place.name,
+                            description: place.desc,
+                            date: new Date().toISOString()
+                        };
+                        await supabase.from('points').insert([newPoint]);
                     }
                 }
                 
-                // Запускаем добавление
-                await addPlacesToDatabase();
-                
                 // ===== Загружаем все точки =====
-                const { data: points, error } = await supabase
-                    .from('points')
-                    .select('*');
-                
-                if (error) throw error;
-                
-                console.log('Загружено точек:', points.length);
+                const { data: points } = await supabase.from('points').select('*');
                 
                 // ===== Создаем маркеры =====
-                const markers = [];
-                
                 points.forEach(point => {
                     const markerDiv = document.createElement('div');
                     markerDiv.className = 'custom-marker';
+                    
+                    // Добавляем попап для наведения (компьютер)
+                    const hoverPopup = document.createElement('div');
+                    hoverPopup.className = 'hover-popup';
+                    hoverPopup.innerHTML = `
+                        <span class="name">${point.name}</span>
+                        <span class="desc">${point.description || 'Интересное место'}</span>
+                    `;
+                    markerDiv.appendChild(hoverPopup);
                     
                     const position = ol.proj.fromLonLat([point.lng, point.lat]);
                     
@@ -432,44 +472,49 @@
                     
                     map.addOverlay(markerOverlay);
                     
-                    // Показываем описание
-                    markerDiv.addEventListener('mouseenter', () => {
-                        // Убираем старые попапы
-                        document.querySelectorAll('.point-popup').forEach(el => el.remove());
+                    // Для телефона - показываем нижний попап при клике
+                    markerDiv.addEventListener('click', function(e) {
+                        e.stopPropagation();
                         
-                        const popupDiv = document.createElement('div');
-                        popupDiv.className = 'point-popup';
-                        popupDiv.innerHTML = `
-                            <h4>${point.name}</h4>
-                            <p>${point.description || 'Интересное место'}</p>
-                            <small>${new Date(point.date).toLocaleDateString('ru-RU')}</small>
-                        `;
-                        
-                        markerDiv.appendChild(popupDiv);
-                        
-                        setTimeout(() => {
-                            if (popupDiv.parentNode) popupDiv.remove();
-                        }, 3000);
+                        // Проверяем, что это телефон (touch device)
+                        if ('ontouchstart' in window) {
+                            document.getElementById('popupTitle').textContent = point.name;
+                            document.getElementById('popupDesc').textContent = point.description || 'Интересное место';
+                            document.getElementById('popupDate').textContent = 'Добавлено: ' + new Date(point.date).toLocaleDateString('ru-RU');
+                            document.getElementById('popup').classList.add('show');
+                        }
                     });
-                    
-                    markers.push(markerOverlay);
                 });
                 
-                // Обновляем счетчик
                 document.getElementById('counter').textContent = points.length + ' мест';
-                loading.classList.remove('show');
+                
+                // ===== Закрытие попапа =====
+                document.getElementById('closePopup').onclick = function() {
+                    document.getElementById('popup').classList.remove('show');
+                };
+                
+                // Клик вне попапа тоже закрывает
+                document.getElementById('popup').onclick = function(e) {
+                    if (e.target === this) {
+                        this.classList.remove('show');
+                    }
+                };
                 
                 // ===== Добавление новой точки =====
                 let newLat = null, newLng = null;
                 const modal = document.getElementById('modal');
                 
                 map.on('click', function(e) {
-                    const coords = ol.proj.toLonLat(e.coordinate);
-                    newLat = coords[1];
-                    newLng = coords[0];
-                    modal.classList.add('show');
-                    document.getElementById('pointName').value = '';
-                    document.getElementById('pointDesc').value = '';
+                    // Проверяем, что клик не по маркеру
+                    const element = map.forEachFeatureAtPixel(e.pixel, () => true);
+                    if (!element) {
+                        const coords = ol.proj.toLonLat(e.coordinate);
+                        newLat = coords[1];
+                        newLng = coords[0];
+                        modal.classList.add('show');
+                        document.getElementById('pointName').value = '';
+                        document.getElementById('pointDesc').value = '';
+                    }
                 });
                 
                 document.getElementById('addBtn').onclick = function() {
@@ -510,7 +555,6 @@
                 
             } catch (error) {
                 console.error('Ошибка:', error);
-                loading.innerHTML = 'Ошибка загрузки';
             }
         };
     </script>
