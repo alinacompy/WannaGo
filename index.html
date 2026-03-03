@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WannaGo</title>
     
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- OpenLayers CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v10.3.1/ol.css" />
     
     <style>
         * {
@@ -43,6 +43,7 @@
             justify-content: center;
             color: white;
             font-weight: bold;
+            font-size: 18px;
         }
         
         .title {
@@ -62,6 +63,7 @@
             text-align: center;
             font-size: 14px;
             color: #2d3436;
+            line-height: 1.5;
         }
         
         /* Карта */
@@ -71,7 +73,7 @@
             z-index: 1;
         }
         
-        /* Кнопка */
+        /* Кнопка добавления */
         .add-button {
             position: fixed;
             bottom: 30px;
@@ -89,6 +91,11 @@
             border: 2px solid white;
             cursor: pointer;
             z-index: 100;
+            transition: transform 0.2s;
+        }
+        
+        .add-button:active {
+            transform: scale(0.95);
         }
         
         /* Модальное окно */
@@ -103,6 +110,7 @@
             align-items: center;
             justify-content: center;
             z-index: 200;
+            padding: 20px;
         }
         
         .modal.show {
@@ -113,29 +121,72 @@
             background: white;
             padding: 24px;
             border-radius: 24px;
-            width: 90%;
-            max-width: 320px;
-            text-align: center;
+            width: 100%;
+            max-width: 380px;
         }
         
-        .modal-content p {
-            margin: 16px 0;
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
             color: #2d3436;
+        }
+        
+        .modal-subtitle {
+            font-size: 14px;
+            color: #b2bec3;
+            margin-bottom: 20px;
+        }
+        
+        .modal-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #ffe6d5;
+            border-radius: 16px;
+            font-size: 15px;
+            margin-bottom: 12px;
+            font-family: inherit;
+        }
+        
+        .modal-input:focus {
+            outline: none;
+            border-color: #ff8a5c;
+        }
+        
+        .modal-textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #ffe6d5;
+            border-radius: 16px;
+            font-size: 15px;
+            margin-bottom: 20px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .modal-textarea:focus {
+            outline: none;
+            border-color: #ff8a5c;
         }
         
         .modal-buttons {
             display: flex;
             gap: 12px;
-            margin-top: 20px;
         }
         
         .modal-button {
             flex: 1;
-            padding: 12px;
+            padding: 14px;
             border: none;
             border-radius: 20px;
-            font-size: 16px;
+            font-size: 15px;
+            font-weight: 600;
             cursor: pointer;
+        }
+        
+        .modal-button:active {
+            opacity: 0.8;
         }
         
         .save {
@@ -148,20 +199,47 @@
             color: #2d3436;
         }
         
-        /* Информация */
-        .info {
-            position: fixed;
-            bottom: 100px;
-            left: 20px;
-            right: 20px;
-            text-align: center;
-            font-size: 12px;
+        /* Попап точки */
+        .point-popup {
+            padding: 12px;
+            min-width: 200px;
+        }
+        
+        .point-popup h3 {
+            font-size: 16px;
+            margin-bottom: 6px;
+            color: #2d3436;
+        }
+        
+        .point-popup p {
             color: #636e72;
-            background: rgba(255,255,255,0.9);
-            padding: 8px;
+            font-size: 14px;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        
+        .point-popup small {
+            color: #b2bec3;
+            font-size: 11px;
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        .delete-point {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 8px 16px;
             border-radius: 20px;
-            border: 1px solid #ffe6d5;
-            z-index: 90;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 8px;
+        }
+        
+        .delete-point:active {
+            opacity: 0.8;
         }
     </style>
 </head>
@@ -181,84 +259,221 @@
     
     <div class="modal" id="modal">
         <div class="modal-content">
-            <h3>Добавить точку?</h3>
-            <p>Вы хотите отметить это место?</p>
+            <div class="modal-title">Новая точка</div>
+            <div class="modal-subtitle">Поделись любимым местом</div>
+            <input type="text" class="modal-input" id="pointName" placeholder="Название места" autocomplete="off">
+            <textarea class="modal-textarea" id="pointDesc" placeholder="Описание (необязательно)" rows="3"></textarea>
             <div class="modal-buttons">
-                <button class="modal-button cancel" id="cancelBtn">Нет</button>
-                <button class="modal-button save" id="saveBtn">Да</button>
+                <button class="modal-button cancel" id="cancelBtn">Отмена</button>
+                <button class="modal-button save" id="saveBtn">Сохранить</button>
             </div>
         </div>
     </div>
-    
-    <div class="info" id="info">
-        Загрузка карты...
-    </div>
 
-    <!-- Подключаем Leaflet JavaScript ПОСЛЕ карты -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- OpenLayers JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/ol@v10.3.1/dist/ol.js"></script>
     
     <script>
-        // Ждем загрузки страницы
         window.onload = function() {
             try {
-                // Создаем карту
-                const map = L.map('map').setView([55.7558, 37.6176], 10);
+                // Создаем карту OpenLayers
+                const map = new ol.Map({
+                    target: 'map',
+                    layers: [
+                        new ol.layer.Tile({
+                            source: new ol.source.OSM() // OpenStreetMap слой
+                        })
+                    ],
+                    view: new ol.View({
+                        center: ol.proj.fromLonLat([37.6176, 55.7558]), // [долгота, широта]
+                        zoom: 10
+                    })
+                });
                 
-                // Добавляем слой карты
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: 'WannaGo'
-                }).addTo(map);
+                // Массив для хранения точек
+                let points = [];
+                const markers = [];
                 
-                // Добавляем тестовую точку
-                L.marker([55.7558, 37.6176]).addTo(map)
-                    .bindPopup('Красная площадь')
-                    .openPopup();
+                // Функция создания маркера
+                function createMarker(point) {
+                    // Создаем векторный слой с точкой
+                    const markerLayer = new ol.layer.Vector({
+                        source: new ol.source.Vector({
+                            features: [
+                                new ol.Feature({
+                                    geometry: new ol.geom.Point(ol.proj.fromLonLat([point.lng, point.lat])),
+                                    name: point.name,
+                                    description: point.description,
+                                    date: point.date,
+                                    id: point.id
+                                })
+                            ]
+                        })
+                    });
+                    
+                    // Добавляем слой на карту
+                    map.addLayer(markerLayer);
+                    
+                    // Сохраняем ссылку на слой
+                    markers.push({
+                        layer: markerLayer,
+                        id: point.id
+                    });
+                    
+                    // Добавляем всплывающее окно при клике
+                    map.on('click', function(evt) {
+                        const feature = map.forEachFeatureAtPixel(evt.pixel, function(feat) {
+                            return feat;
+                        });
+                        
+                        if (feature) {
+                            const coords = feature.getGeometry().getCoordinates();
+                            const name = feature.get('name');
+                            const desc = feature.get('description');
+                            const date = feature.get('date');
+                            const id = feature.get('id');
+                            
+                            // Создаем элемент для попапа
+                            const popupContent = document.createElement('div');
+                            popupContent.className = 'point-popup';
+                            popupContent.innerHTML = `
+                                <h3>${name}</h3>
+                                <p>${desc || '✨ Без описания'}</p>
+                                <small>Добавлено: ${new Date(date).toLocaleDateString('ru-RU')}</small>
+                                <button class="delete-point" data-id="${id}">Удалить</button>
+                            `;
+                            
+                            // Создаем оверлей для попапа
+                            const popup = new ol.Overlay({
+                                element: popupContent,
+                                positioning: 'bottom-center',
+                                stopEvent: true
+                            });
+                            
+                            map.addOverlay(popup);
+                            popup.setPosition(coords);
+                            
+                            // Обработчик удаления
+                            popupContent.querySelector('.delete-point').onclick = function() {
+                                // Удаляем из массива
+                                points = points.filter(p => p.id !== id);
+                                
+                                // Удаляем слой с карты
+                                const markerIndex = markers.findIndex(m => m.id === id);
+                                if (markerIndex !== -1) {
+                                    map.removeLayer(markers[markerIndex].layer);
+                                    markers.splice(markerIndex, 1);
+                                }
+                                
+                                // Удаляем попап
+                                map.removeOverlay(popup);
+                                
+                                // Сохраняем в localStorage
+                                localStorage.setItem('wannago_points', JSON.stringify(points));
+                            };
+                        }
+                    });
+                }
                 
-                document.getElementById('info').innerHTML = '👤 Гость · карта загружена';
+                // Загружаем сохраненные точки
+                const savedPoints = localStorage.getItem('wannago_points');
+                if (savedPoints) {
+                    points = JSON.parse(savedPoints);
+                    points.forEach(point => createMarker(point));
+                } else {
+                    // Добавляем тестовую точку
+                    const testPoint = {
+                        id: Date.now(),
+                        lat: 55.7558,
+                        lng: 37.6176,
+                        name: 'Красная площадь',
+                        description: 'Главная площадь страны',
+                        date: Date.now()
+                    };
+                    points.push(testPoint);
+                    createMarker(testPoint);
+                    localStorage.setItem('wannago_points', JSON.stringify(points));
+                }
                 
-                // Переменные для модального окна
-                let clickLat = null;
-                let clickLng = null;
+                // Переменные для новой точки
+                let newPointLonLat = null;
                 const modal = document.getElementById('modal');
+                const pointName = document.getElementById('pointName');
+                const pointDesc = document.getElementById('pointDesc');
                 
                 // Клик на карте
                 map.on('click', function(e) {
-                    clickLat = e.latlng.lat;
-                    clickLng = e.latlng.lng;
+                    const lonLat = ol.proj.toLonLat(e.coordinate);
+                    newPointLonLat = {
+                        lon: lonLat[0],
+                        lat: lonLat[1]
+                    };
                     modal.classList.add('show');
+                    pointName.value = '';
+                    pointDesc.value = '';
+                    pointName.focus();
                 });
                 
                 // Кнопка +
                 document.getElementById('addBtn').onclick = function() {
-                    map.locate({setView: true, maxZoom: 16});
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(function(position) {
+                            const coords = ol.proj.fromLonLat([position.coords.longitude, position.coords.latitude]);
+                            map.getView().animate({
+                                center: coords,
+                                zoom: 16,
+                                duration: 1000
+                            });
+                            
+                            newPointLonLat = {
+                                lon: position.coords.longitude,
+                                lat: position.coords.latitude
+                            };
+                            
+                            setTimeout(() => {
+                                modal.classList.add('show');
+                                pointName.focus();
+                            }, 1000);
+                        });
+                    }
                 };
-                
-                // Геолокация
-                map.on('locationfound', function(e) {
-                    L.marker(e.latlng).addTo(map)
-                        .bindPopup('Вы здесь').openPopup();
-                });
                 
                 // Отмена
                 document.getElementById('cancelBtn').onclick = function() {
                     modal.classList.remove('show');
-                    clickLat = null;
-                    clickLng = null;
+                    newPointLonLat = null;
                 };
                 
                 // Сохранить
                 document.getElementById('saveBtn').onclick = function() {
-                    if (clickLat && clickLng) {
-                        L.marker([clickLat, clickLng]).addTo(map)
-                            .bindPopup('Новое место').openPopup();
-                        modal.classList.remove('show');
-                        document.getElementById('info').innerHTML = '✅ Точка добавлена';
+                    if (!newPointLonLat) return;
+                    
+                    const name = pointName.value.trim();
+                    if (!name) {
+                        alert('Введите название места');
+                        return;
                     }
+                    
+                    const newPoint = {
+                        id: Date.now(),
+                        lat: newPointLonLat.lat,
+                        lng: newPointLonLat.lon,
+                        name: name,
+                        description: pointDesc.value.trim() || '✨ Новое место',
+                        date: Date.now()
+                    };
+                    
+                    points.push(newPoint);
+                    localStorage.setItem('wannago_points', JSON.stringify(points));
+                    createMarker(newPoint);
+                    
+                    modal.classList.remove('show');
+                    newPointLonLat = null;
                 };
                 
             } catch (e) {
-                document.getElementById('info').innerHTML = '❌ Ошибка: ' + e.message;
-                console.error(e);
+                console.error('Ошибка:', e);
+                alert('Ошибка загрузки карты: ' + e.message);
             }
         };
     </script>
