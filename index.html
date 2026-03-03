@@ -2,122 +2,489 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WannaGo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WannaGo — карта мест</title>
+    
+    <!-- Отключаем кеширование -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <!-- Подключаем Telegram Web App -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Подключаем Leaflet (библиотека для карт) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: #f8f9fc;
-            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        /* Шапка */
+        .header {
             padding: 16px;
-        }
-        .card {
             background: white;
-            border-radius: 20px;
-            padding: 24px;
-            max-width: 400px;
-            margin: 0 auto;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border-bottom: 1px solid #f0f2f8;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 10;
         }
-        h1 {
-            font-size: 32px;
-            margin: 0 0 8px 0;
+        
+        .logo {
+            font-size: 22px;
+            font-weight: 600;
             color: #1a1e2b;
         }
-        h1 span {
+        
+        .logo span {
             color: #5b67ea;
         }
-        p {
-            color: #6e7a8f;
-            margin-bottom: 24px;
+        
+        .profile-icon {
+            width: 40px;
+            height: 40px;
+            background: #5b67ea;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 18px;
         }
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-bottom: 24px;
+        
+        /* Карта занимает всё оставшееся место */
+        #map {
+            flex: 1;
+            width: 100%;
+            z-index: 1;
         }
-        .stat-item {
-            background: #f8f9fc;
-            border-radius: 16px;
-            padding: 12px;
-            text-align: center;
+        
+        /* Кнопка добавления точки */
+        .add-button {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 60px;
+            height: 60px;
+            background: #5b67ea;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 32px;
+            font-weight: 400;
+            box-shadow: 0 8px 20px rgba(91, 103, 234, 0.3);
+            border: 2px solid white;
+            cursor: pointer;
+            z-index: 100;
+            transition: transform 0.2s;
         }
-        .stat-value {
-            font-size: 24px;
-            font-weight: 700;
+        
+        .add-button:active {
+            transform: scale(0.95);
+        }
+        
+        /* Модальное окно для добавления точки */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            padding: 20px;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            padding: 24px;
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
             color: #1a1e2b;
         }
-        .stat-label {
-            font-size: 12px;
-            color: #8e9aaf;
+        
+        .modal-input {
+            width: 100%;
+            padding: 16px;
+            border: 1px solid #e8ecf5;
+            border-radius: 16px;
+            font-size: 16px;
+            margin-bottom: 16px;
+            font-family: inherit;
         }
-        .button {
-            background: #5b67ea;
-            color: white;
+        
+        .modal-input:focus {
+            outline: none;
+            border-color: #5b67ea;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .modal-button {
+            flex: 1;
+            padding: 16px;
             border: none;
             border-radius: 16px;
-            padding: 16px;
             font-size: 16px;
             font-weight: 600;
-            width: 100%;
             cursor: pointer;
-            box-shadow: 0 8px 20px rgba(91,103,234,0.25);
         }
-        .footer {
-            text-align: center;
-            margin-top: 24px;
-            font-size: 12px;
+        
+        .modal-button.save {
+            background: #5b67ea;
+            color: white;
+        }
+        
+        .modal-button.cancel {
+            background: #f1f3f8;
+            color: #1a1e2b;
+        }
+        
+        /* Информация о точке */
+        .point-popup {
+            padding: 8px;
+        }
+        
+        .point-popup h4 {
+            margin-bottom: 4px;
+            color: #1a1e2b;
+        }
+        
+        .point-popup p {
+            color: #6e7a8f;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        .point-popup small {
             color: #8e9aaf;
+            font-size: 12px;
+        }
+        
+        /* Нижняя навигация */
+        .bottom-nav {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background: white;
+            padding: 12px 16px;
+            border-top: 1px solid #f0f2f8;
+            z-index: 10;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: #8e9aaf;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        .nav-item.active {
+            color: #5b67ea;
+        }
+        
+        .nav-icon {
+            font-size: 22px;
         }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h1>Wanna<span>Go</span></h1>
-        <p>путешествуй с теми, кто знает</p>
-        
-        <div class="stats">
-            <div class="stat-item">
-                <div class="stat-value">1.5k</div>
-                <div class="stat-label">попутчиков</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value">1.2k</div>
-                <div class="stat-label">локаций</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value">0.5k</div>
-                <div class="stat-label">стран</div>
+    <!-- Шапка -->
+    <div class="header">
+        <div class="logo">Wanna<span>Go</span></div>
+        <div class="profile-icon" id="profileIcon">👤</div>
+    </div>
+    
+    <!-- Карта -->
+    <div id="map"></div>
+    
+    <!-- Кнопка добавления точки -->
+    <div class="add-button" id="addPointBtn">+</div>
+    
+    <!-- Модальное окно для добавления точки -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <div class="modal-title">Добавить место</div>
+            <input type="text" class="modal-input" id="pointName" placeholder="Название места (например, 'Классный пляж')">
+            <input type="text" class="modal-input" id="pointDesc" placeholder="Описание (необязательно)">
+            <div class="modal-buttons">
+                <button class="modal-button cancel" id="cancelBtn">Отмена</button>
+                <button class="modal-button save" id="saveBtn">Сохранить</button>
             </div>
         </div>
-        
-        <button class="button" id="startBtn">Начать путешествие</button>
-        
-        <div class="footer" id="userInfo">Загрузка...</div>
+    </div>
+    
+    <!-- Нижняя навигация -->
+    <div class="bottom-nav">
+        <div class="nav-item active" data-page="map">
+            <span class="nav-icon">🗺️</span>
+            <span>Карта</span>
+        </div>
+        <div class="nav-item" data-page="profile">
+            <span class="nav-icon">👤</span>
+            <span>Мои точки</span>
+        </div>
+        <div class="nav-item" data-page="stats">
+            <span class="nav-icon">📊</span>
+            <span>Статистика</span>
+        </div>
     </div>
 
     <script>
+        // ===== Инициализация Telegram =====
         const tg = window.Telegram?.WebApp;
+        let userId = 'guest';
+        let userName = 'Гость';
         
         if (tg) {
             tg.ready();
             tg.expand();
             
             const user = tg.initDataUnsafe?.user;
-            const footer = document.getElementById('userInfo');
+            if (user) {
+                userId = user.id || 'guest';
+                userName = user.first_name || 'Гость';
+                document.getElementById('profileIcon').textContent = userName[0]?.toUpperCase() || '👤';
+            }
+        }
+        
+        // ===== Данные =====
+        // Временное хранилище точек (в реальном проекте заменится на базу данных)
+        let points = JSON.parse(localStorage.getItem('wannago_points')) || [
+            {
+                id: 1,
+                lat: 55.7558,
+                lng: 37.6176,
+                name: 'Красная площадь',
+                desc: 'Главная площадь страны',
+                user: 'Анна',
+                userId: 1,
+                date: '2024-03-01'
+            },
+            {
+                id: 2,
+                lat: 55.7517,
+                lng: 37.5738,
+                name: 'Москва-Сити',
+                desc: 'Деловой центр',
+                user: 'Михаил',
+                userId: 2,
+                date: '2024-03-02'
+            }
+        ];
+        
+        // ===== Инициализация карты =====
+        // Центрируем на Москве (можно изменить на любой город)
+        const map = L.map('map').setView([55.7558, 37.6176], 11);
+        
+        // Добавляем слой карты (OpenStreetMap)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+        
+        // ===== Отображаем все точки на карте =====
+        points.forEach(point => {
+            addMarkerToMap(point);
+        });
+        
+        // Функция добавления маркера на карту
+        function addMarkerToMap(point) {
+            // Создаем маркер
+            const marker = L.marker([point.lat, point.lng]).addTo(map);
             
-            if (user && user.first_name) {
-                footer.innerHTML = '👤 ' + user.first_name + ' · WannaGo';
-            } else {
-                footer.innerHTML = '👋 Добро пожаловать в WannaGo';
+            // Создаем попап с информацией
+            const popupContent = `
+                <div class="point-popup">
+                    <h4>${point.name}</h4>
+                    <p>${point.desc || 'Без описания'}</p>
+                    <small>Добавил: ${point.user} · ${point.date}</small>
+                </div>
+            `;
+            
+            marker.bindPopup(popupContent);
+            
+            // Сохраняем id точки в маркере
+            marker.pointId = point.id;
+            
+            return marker;
+        }
+        
+        // ===== Добавление новой точки =====
+        let newPointLat = null;
+        let newPointLng = null;
+        const modal = document.getElementById('modal');
+        const addBtn = document.getElementById('addPointBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const pointName = document.getElementById('pointName');
+        const pointDesc = document.getElementById('pointDesc');
+        
+        // Клик на карте - начинаем добавление точки
+        map.on('click', function(e) {
+            newPointLat = e.latlng.lat;
+            newPointLng = e.latlng.lng;
+            
+            // Показываем модальное окно
+            modal.classList.add('active');
+            pointName.value = '';
+            pointDesc.value = '';
+            pointName.focus();
+        });
+        
+        // Кнопка "Отмена"
+        cancelBtn.addEventListener('click', function() {
+            modal.classList.remove('active');
+            newPointLat = null;
+            newPointLng = null;
+        });
+        
+        // Кнопка "Сохранить"
+        saveBtn.addEventListener('click', function() {
+            if (!newPointLat || !newPointLng) return;
+            if (!pointName.value.trim()) {
+                alert('Введите название места');
+                return;
             }
             
-            document.getElementById('startBtn').onclick = function() {
-                tg.showAlert('Скоро здесь появится карта!');
+            // Создаем новую точку
+            const newPoint = {
+                id: Date.now(), // уникальный id из времени
+                lat: newPointLat,
+                lng: newPointLng,
+                name: pointName.value.trim(),
+                desc: pointDesc.value.trim(),
+                user: userName,
+                userId: userId,
+                date: new Date().toISOString().split('T')[0] // сегодняшняя дата
             };
-        }
+            
+            // Добавляем в массив
+            points.push(newPoint);
+            
+            // Сохраняем в localStorage (временно)
+            localStorage.setItem('wannago_points', JSON.stringify(points));
+            
+            // Добавляем маркер на карту
+            addMarkerToMap(newPoint);
+            
+            // Отправляем данные в Telegram (для будущей базы данных)
+            if (tg) {
+                tg.sendData(JSON.stringify({
+                    action: 'add_point',
+                    point: newPoint
+                }));
+            }
+            
+            // Закрываем модальное окно
+            modal.classList.remove('active');
+            newPointLat = null;
+            newPointLng = null;
+            
+            // Показываем уведомление
+            if (tg) {
+                tg.HapticFeedback?.impactOccurred('medium');
+                tg.showAlert('Место добавлено!');
+            }
+        });
+        
+        // Кнопка добавления (альтернативный способ)
+        addBtn.addEventListener('click', function() {
+            // Центрируем карту на текущем местоположении (если доступно)
+            map.locate({setView: true, maxZoom: 16});
+        });
+        
+        // ===== Навигация =====
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+                this.classList.add('active');
+                
+                const page = this.dataset.page;
+                
+                if (page === 'map') {
+                    // Уже на карте
+                } else if (page === 'profile') {
+                    // Показываем только точки пользователя
+                    const userPoints = points.filter(p => p.userId == userId);
+                    if (tg) {
+                        tg.showAlert(`У вас ${userPoints.length} точек`);
+                    } else {
+                        alert(`У вас ${userPoints.length} точек`);
+                    }
+                } else if (page === 'stats') {
+                    // Показываем статистику
+                    if (tg) {
+                        tg.showAlert(`Всего точек: ${points.length}\nПользователей: ${new Set(points.map(p => p.userId)).size}`);
+                    } else {
+                        alert(`Всего точек: ${points.length}\nПользователей: ${new Set(points.map(p => p.userId)).size}`);
+                    }
+                }
+                
+                if (tg) {
+                    tg.HapticFeedback?.selectionChanged();
+                }
+            });
+        });
+        
+        // ===== Обработка геолокации =====
+        map.on('locationfound', function(e) {
+            // Нашли местоположение пользователя
+            newPointLat = e.latlng.lat;
+            newPointLng = e.latlng.lng;
+            
+            // Добавляем временный маркер
+            L.marker(e.latlng).addTo(map)
+                .bindPopup('Вы здесь').openPopup();
+            
+            // Предлагаем добавить точку
+            setTimeout(() => {
+                modal.classList.add('active');
+                pointName.focus();
+            }, 500);
+        });
+        
+        map.on('locationerror', function() {
+            if (tg) {
+                tg.showAlert('Не удалось определить местоположение');
+            }
+        });
     </script>
 </body>
 </html>
