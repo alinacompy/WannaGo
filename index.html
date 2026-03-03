@@ -239,6 +239,11 @@
             transform: scale(1.1);
         }
         
+        .marker-guide {
+            background: #5b67ea;
+            box-shadow: 0 4px 12px rgba(91, 103, 234, 0.6);
+        }
+        
         /* Попап точки */
         .point-popup {
             padding: 16px;
@@ -247,6 +252,10 @@
             border-radius: 20px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.2);
             border: 2px solid #ff8a5c;
+        }
+        
+        .point-popup.guide {
+            border-color: #5b67ea;
         }
         
         .point-popup h3 {
@@ -288,6 +297,11 @@
             color: #ff8a5c;
             font-weight: 500;
             display: inline-block;
+        }
+        
+        .point-popup .user-info.guide {
+            background: #e6e9ff;
+            color: #5b67ea;
         }
         
         .delete-point {
@@ -415,7 +429,7 @@
                     ],
                     view: new ol.View({
                         center: ol.proj.fromLonLat([37.6176, 55.7558]),
-                        zoom: 10
+                        zoom: 4
                     })
                 });
                 
@@ -426,6 +440,9 @@
                 function createMarkerElement(point) {
                     const div = document.createElement('div');
                     div.className = 'custom-marker';
+                    if (point.user_id === 'guide') {
+                        div.classList.add('marker-guide');
+                    }
                     div.innerHTML = '📍';
                     div.dataset.id = point.id;
                     div.dataset.name = point.name;
@@ -455,6 +472,9 @@
                         // Создаем попап с описанием
                         const popupContent = document.createElement('div');
                         popupContent.className = 'point-popup';
+                        if (point.user_id === 'guide') {
+                            popupContent.classList.add('guide');
+                        }
                         
                         let descriptionHtml = '';
                         if (point.description && point.description !== '✨ Новое место') {
@@ -464,7 +484,7 @@
                         popupContent.innerHTML = `
                             <h3>${point.name}</h3>
                             ${descriptionHtml}
-                            <div class="user-info">👤 Добавил: ${point.user_name}</div>
+                            <div class="user-info ${point.user_id === 'guide' ? 'guide' : ''}">👤 Добавил: ${point.user_name}</div>
                             <small>📅 ${new Date(point.date).toLocaleDateString('ru-RU')}</small>
                             ${point.user_id === currentUser.id ? '<button class="delete-point" data-id="' + point.id + '">Удалить</button>' : ''}
                         `;
@@ -513,8 +533,229 @@
                     markers.push(markerOverlay);
                 }
                 
-                // Загрузка точек из Supabase
+                // ===== Популярные места для добавления =====
+                const popularPlaces = [
+                    // Центральный федеральный округ
+                    {
+                        name: 'Красная площадь',
+                        description: 'Главная площадь Москвы и всей России',
+                        lat: 55.7539,
+                        lng: 37.6208,
+                        user_name: 'WannaGo Guide',
+                        user_id: 'guide'
+                    },
+                    {
+                        name: 'Суздальский кремль',
+                        description: 'Древнейшее сооружение города, памятник белокаменного зодчества',
+                        lat: 56.4156,
+                        lng: 40.4423,
+                        user_name: 'WannaGo Guide',
+                        user_id: 'guide'
+                    },
+                    {
+                        name: 'Троице-Сергиева лавра',
+                        description: 'Крупнейший мужской монастырь России, духовный центр православия',
+                        lat: 56.3101,
+                        lng: 38.1295,
+                        user_name: 'WannaGo Guide',
+                        user_id: 'guide'
+                    },
+                    {
+                        name: 'Музей-заповедник "Ясная Поляна"',
+                        description: 'Усадьба Льва Толстого, где он жил и работал',
+                        lat: 54.0751,
+                        lng: 37.5263,
+                        user_name: 'WannaGo Guide',
+                        user_id: 'guide'
+                    },
+                    {
+                        name: 'Сергиев Посад',
+                        description: 'Город Золотого кольца России с уникальными архитектурными памятниками',
+                        lat: 56.3150,
+                        lng: 38.1335,
+                        user_name: 'WannaGo Guide',
+                        user_id: 'guide'
+                    },
+                    
+                    // Урал (Свердловская область)
+                    {
+                        name: 'Уральский Марс',
+                        description: 'Заброшенный карьер огнеупорной глины с неземными ландшафтами',
+                        lat: 56.6626,
+                        lng: 62.0872,
+                        user_name: 'WannaGo Guide',
+                        user_id: 'guide'
+                    },
+                    {
+                        name: 'Природный парк "Оленьи ручьи"',
+                        description: 'Живописный парк с пещерами и скалами на реке Серга',
+                        lat: 56.5178,
+                        lng: 59.2394,
+                        user_name: 'WannaGo Guide',
+                        user_id: 'guide'
+                    },
+                    {
+                        name: 'Азов-гора',
+                        description: '"Сердце Урала" высотой 585 м, панорамный вид на город Полевской',
+                        lat: 56.4764,
+                        lng: 60.1569,
+                        user_name: 'WannaGo Guide',
+                        user_id: 'guide'
+                    },
+                    {
+                        name: 'Тальков камень',
+                        description: 'Озеро с бирюзовой водой в заброшенном карьере, глубина до 32 м',
+                        lat: 56.4592,
+                        lng: 60.7167,
+                        user_name: 'WannaGo Guide',
+                        user_id: 'guide'
+                    },
+                    {
+                        name: 'Чертово городище',
+                        description: 'Гранитные скалы на вершине горы высотой 347 м',
+                        lat: 56.8956,
+                        lng: 60.4089,
+                        user_name: 'WannaGo Guide',
+                        user_id: 'guide'
+                    },
+                    {
+                        name: 'Буддийский храм Шедруб Линг',
+                        description: 'Единственный буддийский храм на Урале на горе Качканар (878 м)',
+                        lat: 58.7769,
+                        lng: 59.3811,
+                        user_name: 'WannaGo Guide',
+                        user_id: 'guide'
+                    },
+                    {
+                        name: 'Невьянская башня',
+                        description: 'Наклонная башня Демидовых, памятник промышленной архитектуры',
+                        lat: 57.4894,
+                        lng: 60.2125,
+                        user_name: 'WannaGo Guide',
+                        user_id: 'guide'
+                    },
+                    {
+                        name: 'Дидинский тоннель',
+                        description: 'Заброшенный железнодорожный тоннель длиной более километра, построен в 1918 г.',
+                        lat: 56.8186,
+                        lng: 59.6969,
+                        user_name: 'WannaGo Guide',
+                        user_id: 'guide'
+                    },
+                    
+                    // Челябинская область
+                    {
+                        name: 'Национальный парк "Таганай"',
+                        description: 'Уникальный парк с каменными россыпями и хребтами, площадь более 88 тыс. га',
+                        lat: 55.2608,
+                        lng: 59.7933,
+                        user_name: 'WannaGo Guide',
+                        user_id: 'guide'
+                    },
+                    {
+                        name: 'Озеро Тургояк',
+                        description: '"Младший брат Байкала" с удивительно прозрачной водой',
+                        lat: 55.1500,
+                        lng: 60.0667,
+                        user_name: 'WannaGo Guide',
+                        user_id: 'guide'
+                    },
+                    {
+                        name: 'Аракульский шихан',
+                        description: 'Гранитные скалы на берегу озера Аракуль, уникальные формы рельефа',
+                        lat: 55.9877,
+                        lng: 60.4905,
+                        user_name: 'WannaGo Guide',
+                        user_id: 'guide'
+                    },
+                    {
+                        name: 'Пороги в Сатке',
+                        description: 'Урочище с плотиной гидроэлектростанции и могучими водопадами',
+                        lat: 55.1825,
+                        lng: 58.9900,
+                        user_name: 'WannaGo Guide',
+                        user_id: 'guide'
+                    },
+                    {
+                        name: 'Аркаим',
+                        description: 'Древнее поселение эпохи бронзы, музей-заповедник',
+                        lat: 52.6496,
+                        lng: 59.5712,
+                        user_name: 'WannaGo Guide',
+                        user_id: 'guide'
+                    },
+                    
+                    // Пермский край
+                    {
+                        name: 'Большая Пашийская пещера',
+                        description: 'Пещера с подземным водопадом, длина ходов 520 м',
+                        lat: 58.4206,
+                        lng: 58.2246,
+                        user_name: 'WannaGo Guide',
+                        user_id: 'guide'
+                    },
+                    {
+                        name: 'Говорливый камень',
+                        description: 'Живописный утес на реке Вишера с уникальным эхом',
+                        lat: 60.5070,
+                        lng: 57.2650,
+                        user_name: 'WannaGo Guide',
+                        user_id: 'guide'
+                    },
+                    {
+                        name: 'Дивья пещера',
+                        description: 'Одна из красивейших пещер Урала длиной более 10 км',
+                        lat: 58.2841,
+                        lng: 56.5978,
+                        user_name: 'WannaGo Guide',
+                        user_id: 'guide'
+                    }
+                ];
+                
+                // ===== Проверяем и добавляем популярные места =====
+                async function ensurePopularPlaces() {
+                    // Проверяем, есть ли уже точки от гида
+                    const { data: guidePoints } = await supabase
+                        .from('points')
+                        .select('*')
+                        .eq('user_id', 'guide');
+                    
+                    // Если нет точек от гида или их меньше 20, добавляем все
+                    if (!guidePoints || guidePoints.length < 20) {
+                        console.log('Добавляем популярные места...');
+                        
+                        for (const place of popularPlaces) {
+                            // Проверяем, есть ли уже такая точка
+                            const { data: existing } = await supabase
+                                .from('points')
+                                .select('*')
+                                .eq('name', place.name)
+                                .eq('user_id', 'guide');
+                            
+                            if (!existing || existing.length === 0) {
+                                const newPoint = {
+                                    id: Date.now() + Math.random() * 1000,
+                                    lat: place.lat,
+                                    lng: place.lng,
+                                    name: place.name,
+                                    description: place.description,
+                                    user_name: place.user_name,
+                                    user_id: place.user_id,
+                                    date: new Date().toISOString()
+                                };
+                                
+                                await supabase.from('points').insert([newPoint]);
+                            }
+                        }
+                    }
+                }
+                
+                // ===== Загрузка точек из Supabase =====
                 async function loadPoints() {
+                    // Сначала добавляем популярные места
+                    await ensurePopularPlaces();
+                    
+                    // Загружаем все точки
                     const { data, error } = await supabase
                         .from('points')
                         .select('*')
@@ -573,7 +814,7 @@
                                 const coords = ol.proj.fromLonLat([position.coords.longitude, position.coords.latitude]);
                                 map.getView().animate({
                                     center: coords,
-                                    zoom: 16,
+                                    zoom: 12,
                                     duration: 1000
                                 });
                                 
