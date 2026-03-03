@@ -32,6 +32,7 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            flex-shrink: 0;
         }
         
         .logo-image {
@@ -65,6 +66,7 @@
             font-size: 13px;
             color: #2d3436;
             line-height: 1.4;
+            flex-shrink: 0;
         }
         
         /* Карта */
@@ -100,7 +102,7 @@
             transform: scale(0.95);
         }
         
-        /* Модальное окно - адаптировано для телефона */
+        /* Модальное окно */
         .modal {
             position: fixed;
             top: 0;
@@ -218,47 +220,81 @@
             color: #2d3436;
         }
         
+        /* Стиль для маркеров (оранжевые круги) */
+        .custom-marker {
+            width: 40px !important;
+            height: 40px !important;
+            background: #ff8a5c;
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(255, 138, 92, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .custom-marker:hover,
+        .custom-marker:active {
+            transform: scale(1.1);
+        }
+        
         /* Попап точки */
         .point-popup {
             padding: 12px;
-            min-width: 200px;
+            min-width: 220px;
             background: white;
             border-radius: 16px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            border: 2px solid #ff8a5c;
         }
         
         .point-popup h3 {
-            font-size: 16px;
-            margin-bottom: 6px;
+            font-size: 18px;
+            margin-bottom: 8px;
             color: #2d3436;
-            padding-right: 20px;
+            font-weight: 600;
         }
         
         .point-popup p {
             color: #636e72;
             font-size: 14px;
-            margin-bottom: 8px;
-            line-height: 1.4;
+            margin-bottom: 10px;
+            line-height: 1.5;
         }
         
         .point-popup small {
             color: #b2bec3;
-            font-size: 11px;
+            font-size: 12px;
             display: block;
             margin-bottom: 12px;
+        }
+        
+        .point-popup .user-info {
+            background: #fff8f0;
+            padding: 8px 12px;
+            border-radius: 12px;
+            margin: 8px 0;
+            font-size: 13px;
+            color: #ff8a5c;
+            font-weight: 500;
         }
         
         .delete-point {
             background: #ff4444;
             color: white;
             border: none;
-            padding: 10px 16px;
-            border-radius: 20px;
+            padding: 12px 16px;
+            border-radius: 24px;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             width: 100%;
-            margin-top: 8px;
+            margin-top: 10px;
             -webkit-tap-highlight-color: transparent;
         }
         
@@ -269,6 +305,26 @@
         /* Оверлей для OL */
         .ol-overlay-container {
             z-index: 50;
+        }
+        
+        /* Анимация загрузки */
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 16px 24px;
+            border-radius: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 1000;
+            color: #ff8a5c;
+            font-weight: 500;
+            display: none;
+        }
+        
+        .loading.show {
+            display: block;
         }
     </style>
 </head>
@@ -298,6 +354,8 @@
             </div>
         </div>
     </div>
+    
+    <div class="loading" id="loading">Загрузка точек...</div>
 
     <!-- OpenLayers JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/ol@v10.3.1/dist/ol.js"></script>
@@ -305,6 +363,9 @@
     <script>
         window.onload = function() {
             try {
+                const loading = document.getElementById('loading');
+                loading.classList.add('show');
+                
                 // Создаем карту
                 const map = new ol.Map({
                     target: 'map',
@@ -319,55 +380,150 @@
                     })
                 });
                 
+                // Массив для хранения точек и маркеров
                 let points = [];
                 const markers = [];
                 
+                // Функция создания кастомного маркера
+                function createMarkerElement() {
+                    const div = document.createElement('div');
+                    div.className = 'custom-marker';
+                    div.innerHTML = '📍';
+                    return div;
+                }
+                
                 // Функция создания маркера
                 function createMarker(point) {
-                    const markerLayer = new ol.layer.Vector({
-                        source: new ol.source.Vector({
-                            features: [
-                                new ol.Feature({
-                                    geometry: new ol.geom.Point(ol.proj.fromLonLat([point.lng, point.lat])),
-                                    name: point.name,
-                                    description: point.description,
-                                    date: point.date,
-                                    id: point.id
-                                })
-                            ]
-                        })
+                    // Создаем оверлей с кастомным элементом
+                    const markerElement = createMarkerElement();
+                    
+                    const markerOverlay = new ol.Overlay({
+                        position: ol.proj.fromLonLat([point.lng, point.lat]),
+                        positioning: 'center-center',
+                        element: markerElement,
+                        stopEvent: false
                     });
                     
-                    map.addLayer(markerLayer);
+                    map.addOverlay(markerOverlay);
+                    
+                    // Сохраняем данные точки в элементе
+                    markerElement.dataset.id = point.id;
+                    markerElement.dataset.name = point.name;
+                    markerElement.dataset.description = point.description || '';
+                    markerElement.dataset.date = point.date;
+                    markerElement.dataset.user = point.user || 'Гость';
+                    
+                    // Обработчик клика на маркер
+                    markerElement.onclick = function(e) {
+                        e.stopPropagation();
+                        
+                        const id = this.dataset.id;
+                        const name = this.dataset.name;
+                        const description = this.dataset.description;
+                        const date = this.dataset.date;
+                        const user = this.dataset.user;
+                        
+                        // Создаем попап
+                        const popupContent = document.createElement('div');
+                        popupContent.className = 'point-popup';
+                        popupContent.innerHTML = `
+                            <h3>${name}</h3>
+                            <p>${description || '✨ Без описания'}</p>
+                            <div class="user-info">👤 Добавил: ${user}</div>
+                            <small>📅 ${new Date(parseInt(date)).toLocaleDateString('ru-RU')}</small>
+                            <button class="delete-point" data-id="${id}">Удалить</button>
+                        `;
+                        
+                        const popup = new ol.Overlay({
+                            element: popupContent,
+                            positioning: 'top-center',
+                            offset: [0, -20],
+                            stopEvent: true
+                        });
+                        
+                        map.addOverlay(popup);
+                        popup.setPosition(ol.proj.fromLonLat([point.lng, point.lat]));
+                        
+                        // Удаление точки
+                        popupContent.querySelector('.delete-point').onclick = async function(e) {
+                            e.stopPropagation();
+                            
+                            // Удаляем из массива
+                            points = points.filter(p => p.id != id);
+                            
+                            // Удаляем маркер с карты
+                            map.removeOverlay(markerOverlay);
+                            
+                            // Удаляем попап
+                            map.removeOverlay(popup);
+                            
+                            // Сохраняем в localStorage
+                            localStorage.setItem('wannago_points', JSON.stringify(points));
+                            
+                            // Отправляем в Telegram (если есть)
+                            if (window.tg) {
+                                window.tg.sendData(JSON.stringify({
+                                    action: 'delete_point',
+                                    point_id: id
+                                }));
+                            }
+                        };
+                        
+                        // Закрытие попапа при клике вне его
+                        setTimeout(() => {
+                            const closePopup = function(event) {
+                                if (!popupContent.contains(event.target) && !markerElement.contains(event.target)) {
+                                    map.removeOverlay(popup);
+                                    document.removeEventListener('click', closePopup);
+                                }
+                            };
+                            document.addEventListener('click', closePopup);
+                        }, 100);
+                    };
                     
                     markers.push({
-                        layer: markerLayer,
+                        overlay: markerOverlay,
                         id: point.id
                     });
                     
-                    return markerLayer;
+                    return markerOverlay;
                 }
                 
-                // Загружаем точки
+                // Загружаем точки из localStorage
                 const savedPoints = localStorage.getItem('wannago_points');
                 if (savedPoints) {
                     points = JSON.parse(savedPoints);
-                    points.forEach(point => createMarker(point));
                 } else {
-                    const testPoint = {
-                        id: Date.now(),
-                        lat: 55.7558,
-                        lng: 37.6176,
-                        name: 'Красная площадь',
-                        description: 'Главная площадь страны',
-                        date: Date.now()
-                    };
-                    points.push(testPoint);
-                    createMarker(testPoint);
+                    // Тестовые точки
+                    points = [
+                        {
+                            id: Date.now() - 1000,
+                            lat: 55.7558,
+                            lng: 37.6176,
+                            name: 'Красная площадь',
+                            description: 'Главная площадь страны',
+                            user: 'Анна',
+                            date: Date.now() - 86400000
+                        },
+                        {
+                            id: Date.now() - 2000,
+                            lat: 55.7517,
+                            lng: 37.5738,
+                            name: 'Москва-Сити',
+                            description: 'Деловой центр',
+                            user: 'Михаил',
+                            date: Date.now() - 172800000
+                        }
+                    ];
                     localStorage.setItem('wannago_points', JSON.stringify(points));
                 }
                 
-                // Обработка кликов по карте
+                // Отображаем все точки
+                points.forEach(point => createMarker(point));
+                
+                loading.classList.remove('show');
+                
+                // Переменные для новой точки
                 let newPointLonLat = null;
                 const modal = document.getElementById('modal');
                 const pointName = document.getElementById('pointName');
@@ -375,6 +531,19 @@
                 const cancelBtn = document.getElementById('cancelBtn');
                 const saveBtn = document.getElementById('saveBtn');
                 const addBtn = document.getElementById('addBtn');
+                
+                // Telegram
+                const tg = window.Telegram?.WebApp;
+                let currentUser = 'Гость';
+                
+                if (tg) {
+                    tg.ready();
+                    tg.expand();
+                    const user = tg.initDataUnsafe?.user;
+                    if (user) {
+                        currentUser = user.first_name || 'Гость';
+                    }
+                }
                 
                 // Клик на карте
                 map.on('click', function(e) {
@@ -387,72 +556,9 @@
                     pointName.value = '';
                     pointDesc.value = '';
                     
-                    // Фокус на поле ввода с задержкой для телефона
                     setTimeout(() => {
                         pointName.focus();
                     }, 300);
-                });
-                
-                // Обработка кликов по фичам (точкам)
-                map.on('singleclick', function(e) {
-                    const feature = map.forEachFeatureAtPixel(e.pixel, function(feat) {
-                        return feat;
-                    });
-                    
-                    if (feature) {
-                        e.preventDefault();
-                        
-                        const coords = feature.getGeometry().getCoordinates();
-                        const name = feature.get('name');
-                        const desc = feature.get('description');
-                        const date = feature.get('date');
-                        const id = feature.get('id');
-                        
-                        // Создаем попап
-                        const popupContent = document.createElement('div');
-                        popupContent.className = 'point-popup';
-                        popupContent.innerHTML = `
-                            <h3>${name}</h3>
-                            <p>${desc || '✨ Без описания'}</p>
-                            <small>${new Date(date).toLocaleDateString('ru-RU')}</small>
-                            <button class="delete-point" data-id="${id}">Удалить</button>
-                        `;
-                        
-                        const popup = new ol.Overlay({
-                            element: popupContent,
-                            positioning: 'bottom-center',
-                            stopEvent: true
-                        });
-                        
-                        map.addOverlay(popup);
-                        popup.setPosition(coords);
-                        
-                        // Удаление
-                        popupContent.querySelector('.delete-point').onclick = function(e) {
-                            e.stopPropagation();
-                            points = points.filter(p => p.id !== id);
-                            
-                            const markerIndex = markers.findIndex(m => m.id === id);
-                            if (markerIndex !== -1) {
-                                map.removeLayer(markers[markerIndex].layer);
-                                markers.splice(markerIndex, 1);
-                            }
-                            
-                            map.removeOverlay(popup);
-                            localStorage.setItem('wannago_points', JSON.stringify(points));
-                        };
-                        
-                        // Закрытие попапа при клике вне его
-                        setTimeout(() => {
-                            const closePopup = function(event) {
-                                if (!popupContent.contains(event.target)) {
-                                    map.removeOverlay(popup);
-                                    document.removeEventListener('click', closePopup);
-                                }
-                            };
-                            document.addEventListener('click', closePopup);
-                        }, 100);
-                    }
                 });
                 
                 // Кнопка геолокации
@@ -481,8 +587,6 @@
                                 alert('Не удалось определить местоположение');
                             }
                         );
-                    } else {
-                        alert('Геолокация не поддерживается');
                     }
                 };
                 
@@ -508,6 +612,7 @@
                         lng: newPointLonLat.lon,
                         name: name,
                         description: pointDesc.value.trim() || '✨ Новое место',
+                        user: currentUser,
                         date: Date.now()
                     };
                     
@@ -517,23 +622,11 @@
                     
                     modal.classList.remove('show');
                     newPointLonLat = null;
-                };
-                
-                // Закрытие модалки свайпом вниз (для телефона)
-                const modalContent = document.querySelector('.modal-content');
-                let startY = 0;
-                
-                modalContent.addEventListener('touchstart', function(e) {
-                    startY = e.touches[0].clientY;
-                });
-                
-                modalContent.addEventListener('touchmove', function(e) {
-                    const deltaY = e.touches[0].clientY - startY;
-                    if (deltaY > 50) {
-                        modal.classList.remove('show');
-                        newPointLonLat = null;
+                    
+                    if (tg) {
+                        tg.HapticFeedback?.impactOccurred('medium');
                     }
-                });
+                };
                 
             } catch (e) {
                 console.error('Ошибка:', e);
