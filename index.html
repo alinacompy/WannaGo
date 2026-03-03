@@ -35,17 +35,19 @@
             gap: 12px;
         }
         
+        /* Логотип - теперь с правильной ссылкой */
         .logo-image {
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background: #ff8a5c;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 18px;
+            overflow: hidden;
+            border: 2px solid #ff8a5c;
+        }
+        
+        .logo-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
         
         .title {
@@ -57,7 +59,6 @@
             color: #ff8a5c;
         }
         
-        /* Два описания */
         .description-main {
             padding: 12px 16px;
             background: #fff8f0;
@@ -184,7 +185,6 @@
             color: #2d3436;
         }
         
-        /* Маркер - маленький и не мешает */
         .custom-marker {
             width: 24px !important;
             height: 24px !important;
@@ -194,16 +194,13 @@
             box-shadow: 0 2px 8px rgba(255, 138, 92, 0.4);
             cursor: pointer;
             transition: all 0.2s;
-            z-index: 10;
         }
         
         .custom-marker:hover {
             transform: scale(1.2);
             background: #ff6b4a;
-            z-index: 100;
         }
         
-        /* Попап - появляется СВЕРХУ маркера */
         .point-popup {
             position: absolute;
             bottom: 30px !important;
@@ -219,11 +216,8 @@
             font-size: 13px;
             pointer-events: none;
             z-index: 1000;
-            white-space: normal;
-            word-wrap: break-word;
         }
         
-        /* Хвостик попапа */
         .point-popup::after {
             content: '';
             position: absolute;
@@ -270,7 +264,6 @@
             opacity: 0.9;
         }
         
-        /* Индикатор загрузки */
         .loading {
             position: fixed;
             top: 50%;
@@ -292,11 +285,13 @@
 </head>
 <body>
     <div class="header">
-        <div class="logo-image">WG</div>
+        <div class="logo-image">
+            <!-- ВАШ ЛОГОТИП - прямая ссылка с GitHub -->
+            <img src="https://github.com/alinacompy/WannaGo/raw/main/images/logo.jpg" alt="WannaGo">
+        </div>
         <div class="title">Wanna<span>Go</span></div>
     </div>
     
-    <!-- Два описания -->
     <div class="description-main">
         Отмечай любимые места, открывай маршруты других путешественников и создавай своё идеальное путешествие
     </div>
@@ -352,17 +347,26 @@
                     })
                 });
                 
-                // ===== Популярные места =====
+                // ===== ПОПУЛЯРНЫЕ МЕСТА (20 точек) =====
                 const popularPlaces = [
-                    // Центр
+                    // Москва и область
                     { name: 'Красная площадь', lat: 55.7539, lng: 37.6208, desc: 'Главная площадь Москвы' },
+                    { name: 'Московский Кремль', lat: 55.7517, lng: 37.6176, desc: 'Древняя крепость' },
+                    { name: 'ВДНХ', lat: 55.8239, lng: 37.6393, desc: 'Выставка достижений' },
+                    
+                    // Золотое кольцо
                     { name: 'Суздальский кремль', lat: 56.4156, lng: 40.4423, desc: 'Древний кремль' },
                     { name: 'Троице-Сергиева лавра', lat: 56.3101, lng: 38.1295, desc: 'Крупнейший монастырь' },
-                    { name: 'Ясная Поляна', lat: 54.0751, lng: 37.5263, desc: 'Усадьба Льва Толстого' },
+                    { name: 'Ясная Поляна', lat: 54.0751, lng: 37.5263, desc: 'Усадьба Толстого' },
+                    
+                    // Санкт-Петербург
+                    { name: 'Эрмитаж', lat: 59.9398, lng: 30.3146, desc: 'Зимний дворец' },
+                    { name: 'Петродворец', lat: 59.8849, lng: 29.9097, desc: 'Столица фонтанов' },
+                    { name: 'Исаакиевский собор', lat: 59.9340, lng: 30.3061, desc: 'Величайший храм' },
                     
                     // Урал
                     { name: 'Уральский Марс', lat: 56.6626, lng: 62.0872, desc: 'Неземной ландшафт' },
-                    { name: 'Оленьи ручьи', lat: 56.5178, lng: 59.2394, desc: 'Природный парк с пещерами' },
+                    { name: 'Оленьи ручьи', lat: 56.5178, lng: 59.2394, desc: 'Природный парк' },
                     { name: 'Азов-гора', lat: 56.4764, lng: 60.1569, desc: 'Сердце Урала' },
                     { name: 'Тальков камень', lat: 56.4592, lng: 60.7167, desc: 'Бирюзовое озеро' },
                     { name: 'Чертово городище', lat: 56.8956, lng: 60.4089, desc: 'Гранитные скалы' },
@@ -370,23 +374,20 @@
                     { name: 'Таганай', lat: 55.2608, lng: 59.7933, desc: 'Национальный парк' },
                     { name: 'Озеро Тургояк', lat: 55.1500, lng: 60.0667, desc: 'Чистейшая вода' },
                     { name: 'Аркаим', lat: 52.6496, lng: 59.5712, desc: 'Древнее поселение' },
-                    { name: 'Дивья пещера', lat: 58.2841, lng: 56.5978, desc: 'Длина более 10 км' }
+                    { name: 'Дивья пещера', lat: 58.2841, lng: 56.5978, desc: 'Красивейшая пещера' }
                 ];
                 
-                // ===== Проверяем и добавляем точки =====
-                async function initializePoints() {
-                    // Проверяем, есть ли точки в базе
-                    const { data: existingPoints } = await supabase
-                        .from('points')
-                        .select('*');
-                    
-                    console.log('Существующие точки:', existingPoints?.length || 0);
-                    
-                    // Если точек нет - добавляем популярные
-                    if (!existingPoints || existingPoints.length === 0) {
-                        console.log('Добавляем популярные места...');
+                // ===== ПРИНУДИТЕЛЬНО добавляем точки в базу =====
+                async function addPlacesToDatabase() {
+                    for (const place of popularPlaces) {
+                        // Проверяем, есть ли уже такое место
+                        const { data: existing } = await supabase
+                            .from('points')
+                            .select('*')
+                            .eq('name', place.name);
                         
-                        for (const place of popularPlaces) {
+                        // Если нет - добавляем
+                        if (!existing || existing.length === 0) {
                             const newPoint = {
                                 id: Date.now() + Math.random(),
                                 lat: place.lat,
@@ -396,14 +397,14 @@
                                 date: new Date().toISOString()
                             };
                             
-                            const { error } = await supabase.from('points').insert([newPoint]);
-                            if (error) console.error('Ошибка добавления:', error);
+                            await supabase.from('points').insert([newPoint]);
+                            console.log('Добавлено:', place.name);
                         }
                     }
                 }
                 
-                // Запускаем инициализацию
-                await initializePoints();
+                // Запускаем добавление
+                await addPlacesToDatabase();
                 
                 // ===== Загружаем все точки =====
                 const { data: points, error } = await supabase
@@ -414,11 +415,10 @@
                 
                 console.log('Загружено точек:', points.length);
                 
-                // ===== Создаем маркеры для всех точек =====
+                // ===== Создаем маркеры =====
                 const markers = [];
                 
                 points.forEach(point => {
-                    // Создаем маркер
                     const markerDiv = document.createElement('div');
                     markerDiv.className = 'custom-marker';
                     
@@ -432,35 +432,24 @@
                     
                     map.addOverlay(markerOverlay);
                     
-                    // Показываем описание при наведении/клике
-                    function showDesc() {
+                    // Показываем описание
+                    markerDiv.addEventListener('mouseenter', () => {
                         // Убираем старые попапы
                         document.querySelectorAll('.point-popup').forEach(el => el.remove());
                         
-                        // Создаем попап
                         const popupDiv = document.createElement('div');
                         popupDiv.className = 'point-popup';
                         popupDiv.innerHTML = `
                             <h4>${point.name}</h4>
-                            <p>${point.description || 'Нет описания'}</p>
+                            <p>${point.description || 'Интересное место'}</p>
                             <small>${new Date(point.date).toLocaleDateString('ru-RU')}</small>
                         `;
                         
-                        // Добавляем попап прямо в маркер
                         markerDiv.appendChild(popupDiv);
                         
-                        // Убираем через 3 секунды
                         setTimeout(() => {
-                            if (popupDiv.parentNode) {
-                                popupDiv.remove();
-                            }
+                            if (popupDiv.parentNode) popupDiv.remove();
                         }, 3000);
-                    }
-                    
-                    markerDiv.addEventListener('mouseenter', showDesc);
-                    markerDiv.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        showDesc();
                     });
                     
                     markers.push(markerOverlay);
@@ -487,10 +476,7 @@
                     if (navigator.geolocation) {
                         navigator.geolocation.getCurrentPosition(function(pos) {
                             const coords = ol.proj.fromLonLat([pos.coords.longitude, pos.coords.latitude]);
-                            map.getView().animate({
-                                center: coords,
-                                zoom: 10
-                            });
+                            map.getView().animate({ center: coords, zoom: 10 });
                             newLat = pos.coords.latitude;
                             newLng = pos.coords.longitude;
                             modal.classList.add('show');
@@ -498,49 +484,33 @@
                     }
                 };
                 
-                document.getElementById('cancelBtn').onclick = function() {
+                document.getElementById('cancelBtn').onclick = () => {
                     modal.classList.remove('show');
                     newLat = newLng = null;
                 };
                 
-                document.getElementById('saveBtn').onclick = async function() {
+                document.getElementById('saveBtn').onclick = async () => {
                     const name = document.getElementById('pointName').value.trim();
-                    if (!name) {
-                        alert('Введите название');
-                        return;
-                    }
+                    if (!name) return alert('Введите название');
                     
                     const newPoint = {
                         id: Date.now(),
                         lat: newLat,
                         lng: newLng,
                         name: name,
-                        description: document.getElementById('pointDesc').value.trim() || 'Нет описания',
+                        description: document.getElementById('pointDesc').value.trim() || 'Интересное место',
                         date: new Date().toISOString()
                     };
                     
-                    const { error } = await supabase.from('points').insert([newPoint]);
-                    
-                    if (!error) {
-                        modal.classList.remove('show');
-                        newLat = newLng = null;
-                        // Перезагружаем страницу чтобы увидеть новую точку
-                        location.reload();
-                    }
+                    await supabase.from('points').insert([newPoint]);
+                    modal.classList.remove('show');
+                    newLat = newLng = null;
+                    location.reload();
                 };
-                
-                // Подписка на изменения
-                supabase
-                    .channel('points')
-                    .on('postgres_changes', 
-                        { event: '*', schema: 'public', table: 'points' }, 
-                        () => location.reload())
-                    .subscribe();
                 
             } catch (error) {
                 console.error('Ошибка:', error);
                 loading.innerHTML = 'Ошибка загрузки';
-                setTimeout(() => loading.classList.remove('show'), 2000);
             }
         };
     </script>
