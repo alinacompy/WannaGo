@@ -5,19 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>WannaGo — карта мест</title>
     
-    <!-- Отключаем кеширование -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     
-    <!-- Telegram Web App -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
-    <!-- Leaflet (карта) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
-    <!-- Supabase (общая база данных) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
@@ -36,7 +32,6 @@
             overflow: hidden;
         }
         
-        /* Шапка */
         .header {
             padding: 12px 16px;
             background: white;
@@ -84,7 +79,6 @@
             font-size: 18px;
         }
         
-        /* Герой-секция (белый фон) */
         .hero {
             background: white;
             padding: 24px 20px;
@@ -96,14 +90,14 @@
             font-size: 28px;
             font-weight: 700;
             margin-bottom: 4px;
-            color: #ff8a5c; /* оранжевый */
+            color: #ff8a5c;
         }
         
         .hero-subtitle {
             font-size: 16px;
             margin-bottom: 16px;
             font-weight: 400;
-            color: #5b67ea; /* голубой */
+            color: #5b67ea;
         }
         
         .hero-text {
@@ -111,19 +105,16 @@
             max-width: 320px;
             margin: 0 auto;
             line-height: 1.5;
-            color: #2d3436; /* чёрный */
-            background: transparent;
+            color: #2d3436;
             padding: 12px 20px;
         }
         
-        /* Карта */
         #map {
             flex: 1;
             width: 100%;
             z-index: 1;
         }
         
-        /* Кнопка добавления */
         .add-button {
             position: fixed;
             bottom: 80px;
@@ -148,7 +139,6 @@
             transform: scale(0.95);
         }
         
-        /* Модальное окно */
         .modal {
             position: fixed;
             top: 0;
@@ -228,7 +218,6 @@
             color: #2d3436;
         }
         
-        /* Попап точки */
         .point-popup {
             padding: 8px;
             min-width: 200px;
@@ -262,7 +251,6 @@
             margin-top: 6px;
         }
         
-        /* Нижняя навигация */
         .bottom-nav {
             display: flex;
             justify-content: space-around;
@@ -291,22 +279,6 @@
             font-size: 22px;
         }
         
-        /* Индикатор загрузки */
-        .loading {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 12px 24px;
-            border-radius: 30px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            z-index: 1000;
-            font-size: 14px;
-            color: #ff8a5c;
-        }
-        
-        /* Инфо */
         .tg-info {
             position: fixed;
             bottom: 140px;
@@ -325,17 +297,14 @@
     </style>
 </head>
 <body>
-    <!-- Шапка с логотипом -->
     <div class="header">
         <div class="logo-container">
-            <!-- Круглый логотип в оранжевом стиле -->
             <img src="https://github.com/alinacompy/WannaGo/raw/a0cf96774f538025571a0bc864ef405cd5c48b1a/images/logo.jpg" class="logo-image" alt="WannaGo">
             <div class="logo-text">Wanna<span>Go</span></div>
         </div>
         <div class="profile-icon" id="profileIcon">👤</div>
     </div>
     
-    <!-- Герой-секция с белым фоном -->
     <div class="hero">
         <div class="hero-title">WannaGo</div>
         <div class="hero-subtitle">Travel Community</div>
@@ -344,13 +313,10 @@
         </div>
     </div>
     
-    <!-- Карта -->
     <div id="map"></div>
     
-    <!-- Кнопка добавления -->
     <div class="add-button" id="addPointBtn">+</div>
     
-    <!-- Модальное окно -->
     <div class="modal" id="modal">
         <div class="modal-content">
             <div class="modal-title">Новая точка</div>
@@ -364,7 +330,6 @@
         </div>
     </div>
     
-    <!-- Нижняя навигация -->
     <div class="bottom-nav">
         <div class="nav-item active" data-page="map">
             <span class="nav-icon">🗺️</span>
@@ -380,24 +345,18 @@
         </div>
     </div>
     
-    <!-- Информация о пользователе -->
     <div class="tg-info" id="userInfo">
         Загрузка...
     </div>
 
     <script>
-        // ===== Telegram =====
+        // Telegram
         const tg = window.Telegram?.WebApp;
-        let currentUser = {
-            id: 'guest',
-            name: 'Гость',
-            initials: 'Г'
-        };
+        let currentUser = { id: 'guest', name: 'Гость', initials: 'Г' };
         
         if (tg) {
             tg.ready();
             tg.expand();
-            
             const user = tg.initDataUnsafe?.user;
             if (user) {
                 currentUser = {
@@ -409,28 +368,24 @@
             }
         }
         
-        // ===== Supabase (общая база данных) =====
-const SUPABASE_URL = 'https://dfhkftlzoukxgbaeqkwr.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_1j1NGuJyeDwQtk7hercvq0_822CFN8B';
+        // Supabase - ВАШИ КЛЮЧИ
+        const SUPABASE_URL = 'https://dfhkftlzoukxgbaeqkwr.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_1jiNGUjveDwQtk7hercvdQ_82ZCFN8B';
         
+        // Создаем клиент Supabase
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         
-        // ===== Карта =====
+        // Карта
         const map = L.map('map').setView([55.7558, 37.6176], 11);
         
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© WannaGo'
         }).addTo(map);
         
-        // Хранилище маркеров
         const markers = {};
         
-        // Функция добавления маркера на карту
         function addMarkerToMap(point) {
-            const markerColor = point.user_id == currentUser.id ? '#ff8a5c' : '#b2bec3';
-            
             const marker = L.marker([point.lat, point.lng]).addTo(map);
-            
             const popupContent = `
                 <div class="point-popup">
                     <h4>${point.name}</h4>
@@ -439,22 +394,21 @@ const SUPABASE_KEY = 'sb_publishable_1j1NGuJyeDwQtk7hercvq0_822CFN8B';
                     <div class="user-tag">👤 ${point.user_name}</div>
                 </div>
             `;
-            
             marker.bindPopup(popupContent);
             markers[point.id] = marker;
-            return marker;
         }
         
-        // ===== Загрузка точек из Supabase =====
         async function loadPoints() {
             try {
+                document.getElementById('userInfo').innerHTML = '⏳ Загрузка точек...';
+                
                 const { data, error } = await supabase
                     .from('points')
-                    .select('*')
-                    .order('date', { ascending: false });
+                    .select('*');
                 
                 if (error) {
-                    console.error('Ошибка загрузки:', error);
+                    console.error('Ошибка Supabase:', error);
+                    document.getElementById('userInfo').innerHTML = '❌ Ошибка загрузки';
                     return;
                 }
                 
@@ -462,68 +416,41 @@ const SUPABASE_KEY = 'sb_publishable_1j1NGuJyeDwQtk7hercvq0_822CFN8B';
                 Object.values(markers).forEach(m => map.removeLayer(m));
                 
                 // Добавляем новые
-                data.forEach(point => addMarkerToMap(point));
+                data?.forEach(point => addMarkerToMap(point));
                 
                 document.getElementById('userInfo').innerHTML = 
-                    `👤 <b>${currentUser.name}</b> · всего точек: ${data.length} ✨`;
+                    `👤 ${currentUser.name} · точек: ${data?.length || 0}`;
                     
             } catch (e) {
                 console.error('Ошибка:', e);
-                document.getElementById('userInfo').innerHTML = '⚠️ Ошибка загрузки точек';
+                document.getElementById('userInfo').innerHTML = '⚠️ Ошибка соединения';
             }
         }
         
-        // Загружаем точки при старте
+        // Загружаем точки
         loadPoints();
         
-        // ===== Добавление новой точки =====
-        let newPointLat = null;
-        let newPointLng = null;
+        // Добавление новой точки
+        let newPointLat = null, newPointLng = null;
         const modal = document.getElementById('modal');
-        const addBtn = document.getElementById('addPointBtn');
-        const cancelBtn = document.getElementById('cancelBtn');
-        const saveBtn = document.getElementById('saveBtn');
         const pointName = document.getElementById('pointName');
         const pointDesc = document.getElementById('pointDesc');
         
-        // Клик на карте
         map.on('click', function(e) {
             newPointLat = e.latlng.lat.toFixed(6);
             newPointLng = e.latlng.lng.toFixed(6);
             modal.classList.add('active');
             pointName.value = '';
             pointDesc.value = '';
-            pointName.focus();
         });
         
-        // Кнопка добавления (геолокация)
-        addBtn.addEventListener('click', function() {
-            map.locate({setView: true, maxZoom: 16});
-        });
-        
-        // Геолокация сработала
-        map.on('locationfound', function(e) {
-            newPointLat = e.latlng.lat.toFixed(6);
-            newPointLng = e.latlng.lng.toFixed(6);
-            
-            L.marker(e.latlng).addTo(map)
-                .bindPopup('📍 Вы здесь').openPopup();
-            
-            setTimeout(() => {
-                modal.classList.add('active');
-                pointName.focus();
-            }, 500);
-        });
-        
-        // Отмена
-        cancelBtn.addEventListener('click', function() {
+        document.getElementById('cancelBtn').onclick = function() {
             modal.classList.remove('active');
             newPointLat = null;
             newPointLng = null;
-        });
+        };
         
-        // Сохранение
-        saveBtn.addEventListener('click', async function() {
+        document.getElementById('saveBtn').onclick = async function() {
             if (!newPointLat || !newPointLng) return;
             if (!pointName.value.trim()) {
                 alert('Введите название места');
@@ -541,36 +468,35 @@ const SUPABASE_KEY = 'sb_publishable_1j1NGuJyeDwQtk7hercvq0_822CFN8B';
                 date: new Date().toLocaleDateString('ru-RU')
             };
             
-            try {
-                // Сохраняем в Supabase
-                const { error } = await supabase
-                    .from('points')
-                    .insert([newPoint]);
-                
-                if (error) throw error;
-                
-                // Добавляем на карту
+            const { error } = await supabase
+                .from('points')
+                .insert([newPoint]);
+            
+            if (error) {
+                alert('Ошибка: ' + error.message);
+            } else {
                 addMarkerToMap(newPoint);
-                
                 modal.classList.remove('active');
                 newPointLat = null;
                 newPointLng = null;
-                
-                // Обновляем информацию
                 loadPoints();
-                
-                if (tg) {
-                    tg.HapticFeedback?.impactOccurred('medium');
-                    tg.showAlert('Место добавлено! ✨');
-                }
-                
-            } catch (error) {
-                console.error('Ошибка сохранения:', error);
-                alert('Не удалось сохранить точку');
+                if (tg) tg.HapticFeedback?.impactOccurred('medium');
             }
+        };
+        
+        document.getElementById('addPointBtn').onclick = function() {
+            map.locate({setView: true, maxZoom: 16});
+        };
+        
+        map.on('locationfound', function(e) {
+            newPointLat = e.latlng.lat.toFixed(6);
+            newPointLng = e.latlng.lng.toFixed(6);
+            L.marker(e.latlng).addTo(map)
+                .bindPopup('📍 Вы здесь').openPopup();
+            setTimeout(() => modal.classList.add('active'), 500);
         });
         
-        // ===== Навигация =====
+        // Навигация
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', async function() {
                 document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
@@ -584,24 +510,17 @@ const SUPABASE_KEY = 'sb_publishable_1j1NGuJyeDwQtk7hercvq0_822CFN8B';
                         .select('*')
                         .eq('user_id', currentUser.id);
                     
-                    if (tg) {
-                        tg.showAlert(`У вас ${data?.length || 0} точек`);
-                    }
+                    alert(`У вас ${data?.length || 0} точек`);
                 } else if (page === 'stats') {
                     const { data } = await supabase
                         .from('points')
                         .select('*');
                     
                     const users = new Set(data?.map(p => p.user_id) || []).size;
-                    
-                    if (tg) {
-                        tg.showAlert(`🌟 Всего точек: ${data?.length || 0}\n👥 Путешественников: ${users}`);
-                    }
+                    alert(`🌟 Всего точек: ${data?.length || 0}\n👥 Путешественников: ${users}`);
                 }
                 
-                if (tg) {
-                    tg.HapticFeedback?.selectionChanged();
-                }
+                if (tg) tg.HapticFeedback?.selectionChanged();
             });
         });
     </script>
