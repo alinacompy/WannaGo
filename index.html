@@ -239,6 +239,11 @@
             margin-bottom: 12px;
         }
         
+        .modal-input:focus {
+            outline: none;
+            border-color: #ff8a5c;
+        }
+        
         .modal-textarea {
             width: 100%;
             padding: 14px;
@@ -275,6 +280,7 @@
             color: #2d3436;
         }
         
+        /* Маркер */
         .custom-marker {
             width: 30px !important;
             height: 30px !important;
@@ -297,16 +303,17 @@
             z-index: 1000;
         }
         
-        .hover-popup {
+        /* Описание - теперь справа от маркера */
+        .marker-description {
             position: absolute;
-            bottom: 35px;
-            left: 50%;
-            transform: translateX(-50%);
+            left: 35px;
+            top: 50%;
+            transform: translateY(-50%);
             background: white;
             border-radius: 12px;
-            padding: 12px;
-            min-width: 220px;
-            max-width: 280px;
+            padding: 8px 12px;
+            min-width: 180px;
+            max-width: 220px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.2);
             border: 2px solid #ff8a5c;
             pointer-events: none;
@@ -314,27 +321,30 @@
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.2s, visibility 0.2s;
+            white-space: normal;
+            word-wrap: break-word;
         }
         
-        .custom-marker:hover .hover-popup {
+        .custom-marker:hover .marker-description {
             opacity: 1;
             visibility: visible;
+            left: 40px;
         }
         
-        .hover-popup::after {
+        .marker-description::before {
             content: '';
             position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
+            left: -8px;
+            top: 50%;
+            transform: translateY(-50%);
             width: 0;
             height: 0;
-            border-left: 10px solid transparent;
-            border-right: 10px solid transparent;
-            border-top: 10px solid #ff8a5c;
+            border-top: 8px solid transparent;
+            border-bottom: 8px solid transparent;
+            border-right: 8px solid #ff8a5c;
         }
         
-        .hover-popup .name {
+        .marker-description .name {
             font-weight: 700;
             color: #2d3436;
             font-size: 14px;
@@ -342,30 +352,31 @@
             display: block;
         }
         
-        .hover-popup .desc {
+        .marker-description .desc {
             color: #636e72;
             font-size: 12px;
             line-height: 1.4;
-            margin-bottom: 8px;
             display: block;
+            margin-bottom: 4px;
         }
         
-        .hover-popup .date {
+        .marker-description .date {
             color: #b2bec3;
             font-size: 10px;
             display: block;
         }
         
-        .hover-popup .route-badge {
+        .marker-description .route-badge {
             background: #5b67ea;
             color: white;
-            font-size: 11px;
-            padding: 4px 8px;
-            border-radius: 12px;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
             display: inline-block;
-            margin-top: 6px;
+            margin-top: 4px;
         }
         
+        /* Попап для телефона */
         .popup-overlay {
             position: fixed;
             bottom: 0;
@@ -453,6 +464,12 @@
             z-index: 90;
             opacity: 0.9;
         }
+        
+        @media (max-width: 768px) {
+            .marker-description {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -527,8 +544,6 @@
                     tg.ready();
                     tg.expand();
                     
-                    // Получаем данные пользователя из Telegram
-                    const initData = tg.initData;
                     const initDataUnsafe = tg.initDataUnsafe;
                     
                     if (initDataUnsafe?.user) {
@@ -541,7 +556,6 @@
                             photo_url: user.photo_url || ''
                         };
                         
-                        // Сохраняем пользователя в базу
                         await supabase.from('users').upsert([{
                             id: user.id,
                             tg_id: user.id,
@@ -552,7 +566,6 @@
                             created_at: new Date().toISOString()
                         }], { onConflict: 'tg_id' });
                         
-                        // Обновляем интерфейс
                         document.getElementById('userName').textContent = user.first_name;
                         if (user.photo_url) {
                             document.getElementById('userAvatar').innerHTML = `<img src="${user.photo_url}" style="width:100%;height:100%;border-radius:50%;">`;
@@ -601,23 +614,23 @@
                     
                     const position = ol.proj.fromLonLat([point.lng, point.lat]);
                     
-                    // Попап для наведения
-                    const hoverPopup = document.createElement('div');
-                    hoverPopup.className = 'hover-popup';
+                    // Описание справа от маркера (для компьютера)
+                    const description = document.createElement('div');
+                    description.className = 'marker-description';
                     
                     let routeBadge = '';
                     if (userRoutes.includes(point.id)) {
                         routeBadge = '<span class="route-badge">✓ В маршруте</span>';
                     }
                     
-                    hoverPopup.innerHTML = `
+                    description.innerHTML = `
                         <span class="name">${point.name}</span>
                         <span class="desc">${point.description || ''}</span>
                         <span class="date">${new Date(point.date).toLocaleDateString('ru-RU')}</span>
                         ${routeBadge}
                     `;
                     
-                    markerDiv.appendChild(hoverPopup);
+                    markerDiv.appendChild(description);
                     
                     const markerOverlay = new ol.Overlay({
                         position: position,
@@ -627,7 +640,7 @@
                     
                     map.addOverlay(markerOverlay);
                     
-                    // Клик на маркере
+                    // Клик на маркере (для телефона)
                     markerDiv.addEventListener('click', function(e) {
                         e.stopPropagation();
                         
@@ -640,9 +653,7 @@
                         
                         routeBtn.textContent = isInRoute ? '✓ Уже в маршруте' : '➕ В маршрут';
                         routeBtn.classList.toggle('in-route', isInRoute);
-                        routeBtn.disabled = isInRoute;
                         
-                        // Обработчик добавления в маршрут
                         routeBtn.onclick = async function() {
                             if (!currentUser) {
                                 alert('Авторизуйтесь в Telegram');
@@ -661,13 +672,12 @@
                                 markerDiv.classList.add('in-route');
                                 routeBtn.textContent = '✓ Уже в маршруте';
                                 routeBtn.classList.add('in-route');
-                                routeBtn.disabled = true;
                                 
-                                // Обновляем попап наведения
+                                // Добавляем бейдж в описание
                                 const badge = document.createElement('span');
                                 badge.className = 'route-badge';
                                 badge.textContent = '✓ В маршруте';
-                                hoverPopup.appendChild(badge);
+                                description.appendChild(badge);
                             }
                         };
                         
@@ -717,13 +727,6 @@
                             
                             userRoutes = userRoutes.filter(id => id !== point.id);
                             loadUserRoutes();
-                            
-                            // Обновляем маркер
-                            markers.forEach(m => {
-                                if (m.position && m.position.toString() === point.id) {
-                                    m.element.classList.remove('in-route');
-                                }
-                            });
                         };
                         
                         panel.appendChild(item);
