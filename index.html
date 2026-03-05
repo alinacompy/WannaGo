@@ -49,7 +49,7 @@
             height: 40px;
             border-radius: 50%;
             overflow: hidden;
-            border: 2px solid #ff8a5c;
+            /* Убрана оранжевая обводка */
         }
         
         .logo-image img {
@@ -87,6 +87,7 @@
             color: white;
             font-weight: bold;
             font-size: 14px;
+            overflow: hidden;
         }
         
         .user-name {
@@ -303,17 +304,17 @@
             z-index: 1000;
         }
         
-        /* Описание - теперь справа от маркера */
-        .marker-description {
+        /* Описание над точкой */
+        .hover-popup {
             position: absolute;
-            left: 35px;
-            top: 50%;
-            transform: translateY(-50%);
+            bottom: 35px;
+            left: 50%;
+            transform: translateX(-50%);
             background: white;
             border-radius: 12px;
-            padding: 8px 12px;
-            min-width: 180px;
-            max-width: 220px;
+            padding: 10px 14px;
+            min-width: 200px;
+            max-width: 250px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.2);
             border: 2px solid #ff8a5c;
             pointer-events: none;
@@ -325,26 +326,25 @@
             word-wrap: break-word;
         }
         
-        .custom-marker:hover .marker-description {
+        .custom-marker:hover .hover-popup {
             opacity: 1;
             visibility: visible;
-            left: 40px;
         }
         
-        .marker-description::before {
+        .hover-popup::after {
             content: '';
             position: absolute;
-            left: -8px;
-            top: 50%;
-            transform: translateY(-50%);
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
             width: 0;
             height: 0;
-            border-top: 8px solid transparent;
-            border-bottom: 8px solid transparent;
-            border-right: 8px solid #ff8a5c;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 10px solid #ff8a5c;
         }
         
-        .marker-description .name {
+        .hover-popup .name {
             font-weight: 700;
             color: #2d3436;
             font-size: 14px;
@@ -352,7 +352,7 @@
             display: block;
         }
         
-        .marker-description .desc {
+        .hover-popup .desc {
             color: #636e72;
             font-size: 12px;
             line-height: 1.4;
@@ -360,13 +360,13 @@
             margin-bottom: 4px;
         }
         
-        .marker-description .date {
+        .hover-popup .date {
             color: #b2bec3;
             font-size: 10px;
             display: block;
         }
         
-        .marker-description .route-badge {
+        .hover-popup .route-badge {
             background: #5b67ea;
             color: white;
             font-size: 10px;
@@ -466,8 +466,8 @@
         }
         
         @media (max-width: 768px) {
-            .marker-description {
-                display: none !important;
+            .custom-marker:hover .hover-popup {
+                display: none;
             }
         }
     </style>
@@ -614,23 +614,23 @@
                     
                     const position = ol.proj.fromLonLat([point.lng, point.lat]);
                     
-                    // Описание справа от маркера (для компьютера)
-                    const description = document.createElement('div');
-                    description.className = 'marker-description';
+                    // Попап для наведения (только на компьютере)
+                    const hoverPopup = document.createElement('div');
+                    hoverPopup.className = 'hover-popup';
                     
                     let routeBadge = '';
                     if (userRoutes.includes(point.id)) {
                         routeBadge = '<span class="route-badge">✓ В маршруте</span>';
                     }
                     
-                    description.innerHTML = `
+                    hoverPopup.innerHTML = `
                         <span class="name">${point.name}</span>
                         <span class="desc">${point.description || ''}</span>
                         <span class="date">${new Date(point.date).toLocaleDateString('ru-RU')}</span>
                         ${routeBadge}
                     `;
                     
-                    markerDiv.appendChild(description);
+                    markerDiv.appendChild(hoverPopup);
                     
                     const markerOverlay = new ol.Overlay({
                         position: position,
@@ -673,11 +673,11 @@
                                 routeBtn.textContent = '✓ Уже в маршруте';
                                 routeBtn.classList.add('in-route');
                                 
-                                // Добавляем бейдж в описание
+                                // Добавляем бейдж в попап наведения
                                 const badge = document.createElement('span');
                                 badge.className = 'route-badge';
                                 badge.textContent = '✓ В маршруте';
-                                description.appendChild(badge);
+                                hoverPopup.appendChild(badge);
                             }
                         };
                         
