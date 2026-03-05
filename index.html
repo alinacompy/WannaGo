@@ -185,12 +185,12 @@
         }
         
         .custom-marker {
-            width: 24px !important;
-            height: 24px !important;
+            width: 30px !important;
+            height: 30px !important;
             background: #ff8a5c;
-            border: 2px solid white;
+            border: 3px solid white;
             border-radius: 50%;
-            box-shadow: 0 2px 8px rgba(255, 138, 92, 0.4);
+            box-shadow: 0 2px 10px rgba(255, 138, 92, 0.6);
             cursor: pointer;
             transition: all 0.2s;
             position: relative;
@@ -199,63 +199,69 @@
         .custom-marker:hover {
             transform: scale(1.2);
             z-index: 1000;
+            background: #ff6b4a;
         }
         
         /* Попап для наведения (компьютер) */
         .hover-popup {
             position: absolute;
-            bottom: 30px;
+            bottom: 35px;
             left: 50%;
             transform: translateX(-50%);
             background: white;
             border-radius: 12px;
-            padding: 8px 12px;
-            min-width: 160px;
-            max-width: 200px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            padding: 10px 14px;
+            min-width: 200px;
+            max-width: 250px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
             border: 2px solid #ff8a5c;
-            font-size: 12px;
             pointer-events: none;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            display: none;
             z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s, visibility 0.2s;
+            white-space: normal;
+            word-wrap: break-word;
         }
         
         .custom-marker:hover .hover-popup {
-            display: block;
+            opacity: 1;
+            visibility: visible;
         }
         
         .hover-popup::after {
             content: '';
             position: absolute;
-            bottom: -8px;
+            bottom: -10px;
             left: 50%;
             transform: translateX(-50%);
             width: 0;
             height: 0;
-            border-left: 8px solid transparent;
-            border-right: 8px solid transparent;
-            border-top: 8px solid #ff8a5c;
-        }
-        
-        .hover-popup span {
-            display: block;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 10px solid #ff8a5c;
         }
         
         .hover-popup .name {
-            font-weight: 600;
+            font-weight: 700;
             color: #2d3436;
-            margin-bottom: 2px;
+            font-size: 14px;
+            margin-bottom: 4px;
+            display: block;
         }
         
         .hover-popup .desc {
             color: #636e72;
-            font-size: 11px;
+            font-size: 12px;
+            line-height: 1.4;
+            display: block;
+        }
+        
+        .hover-popup .date {
+            color: #b2bec3;
+            font-size: 10px;
+            margin-top: 6px;
+            display: block;
         }
         
         /* Попап для телефона (на весь экран снизу) */
@@ -272,7 +278,7 @@
             z-index: 1000;
             transform: translateY(100%);
             transition: transform 0.3s ease;
-            max-height: 50vh;
+            max-height: 70vh;
             overflow-y: auto;
         }
         
@@ -281,7 +287,7 @@
         }
         
         .popup-overlay h3 {
-            font-size: 20px;
+            font-size: 22px;
             margin-bottom: 12px;
             color: #2d3436;
             padding-right: 40px;
@@ -289,14 +295,14 @@
         
         .popup-overlay p {
             color: #636e72;
-            font-size: 15px;
+            font-size: 16px;
             line-height: 1.5;
             margin-bottom: 16px;
         }
         
         .popup-overlay small {
             color: #b2bec3;
-            font-size: 13px;
+            font-size: 14px;
             display: block;
             margin-bottom: 16px;
         }
@@ -305,7 +311,7 @@
             position: absolute;
             top: 20px;
             right: 20px;
-            font-size: 28px;
+            font-size: 30px;
             color: #b2bec3;
             cursor: pointer;
             width: 40px;
@@ -448,18 +454,26 @@
                 // ===== Загружаем все точки =====
                 const { data: points } = await supabase.from('points').select('*');
                 
+                console.log('Загружено точек:', points.length);
+                
                 // ===== Создаем маркеры =====
                 points.forEach(point => {
                     const markerDiv = document.createElement('div');
                     markerDiv.className = 'custom-marker';
                     
-                    // Добавляем попап для наведения (компьютер)
+                    // Добавляем попап для наведения (работает на компьютере)
                     const hoverPopup = document.createElement('div');
                     hoverPopup.className = 'hover-popup';
+                    
+                    // Форматируем дату
+                    const date = new Date(point.date).toLocaleDateString('ru-RU');
+                    
                     hoverPopup.innerHTML = `
                         <span class="name">${point.name}</span>
                         <span class="desc">${point.description || 'Интересное место'}</span>
+                        <span class="date">${date}</span>
                     `;
+                    
                     markerDiv.appendChild(hoverPopup);
                     
                     const position = ol.proj.fromLonLat([point.lng, point.lat]);
@@ -476,11 +490,11 @@
                     markerDiv.addEventListener('click', function(e) {
                         e.stopPropagation();
                         
-                        // Проверяем, что это телефон (touch device)
-                        if ('ontouchstart' in window) {
+                        // Проверяем, что это touch-устройство
+                        if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
                             document.getElementById('popupTitle').textContent = point.name;
                             document.getElementById('popupDesc').textContent = point.description || 'Интересное место';
-                            document.getElementById('popupDate').textContent = 'Добавлено: ' + new Date(point.date).toLocaleDateString('ru-RU');
+                            document.getElementById('popupDate').textContent = 'Добавлено: ' + date;
                             document.getElementById('popup').classList.add('show');
                         }
                     });
@@ -493,7 +507,6 @@
                     document.getElementById('popup').classList.remove('show');
                 };
                 
-                // Клик вне попапа тоже закрывает
                 document.getElementById('popup').onclick = function(e) {
                     if (e.target === this) {
                         this.classList.remove('show');
@@ -506,8 +519,10 @@
                 
                 map.on('click', function(e) {
                     // Проверяем, что клик не по маркеру
-                    const element = map.forEachFeatureAtPixel(e.pixel, () => true);
-                    if (!element) {
+                    let clickedOnMarker = false;
+                    map.forEachFeatureAtPixel(e.pixel, () => { clickedOnMarker = true; });
+                    
+                    if (!clickedOnMarker) {
                         const coords = ol.proj.toLonLat(e.coordinate);
                         newLat = coords[1];
                         newLng = coords[0];
