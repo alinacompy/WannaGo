@@ -49,7 +49,6 @@
             height: 40px;
             border-radius: 50%;
             overflow: hidden;
-            /* Убрана оранжевая обводка */
         }
         
         .logo-image img {
@@ -292,6 +291,7 @@
             cursor: pointer;
             transition: all 0.2s;
             position: relative;
+            z-index: 10;
         }
         
         .custom-marker.in-route {
@@ -301,7 +301,7 @@
         
         .custom-marker:hover {
             transform: scale(1.2);
-            z-index: 1000;
+            z-index: 2000 !important;
         }
         
         /* Описание над точкой */
@@ -318,7 +318,7 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.2);
             border: 2px solid #ff8a5c;
             pointer-events: none;
-            z-index: 2000;
+            z-index: 3000;
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.2s, visibility 0.2s;
@@ -387,7 +387,7 @@
             padding: 24px;
             box-shadow: 0 -4px 20px rgba(0,0,0,0.2);
             border-top: 3px solid #ff8a5c;
-            z-index: 1000;
+            z-index: 4000;
             transform: translateY(100%);
             transition: transform 0.3s ease;
             max-height: 70vh;
